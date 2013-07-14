@@ -1,0 +1,41 @@
+<project name="Project" default="compile">
+	<path id="classpath">
+		<fileset dir="lib"/>
+	</path>
+
+	<target name="compile">
+		<mkdir dir="classes"/>
+		<javac srcdir="src" destdir="classes">
+			<classpath refid="classpath"/>
+		</javac>
+		<copy todir="classes">
+			<fileset dir="src" excludes="**/*.java"/>
+		</copy>
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="chess.jar">
+			<fileset dir="classes"/>
+			<restrict>
+				<archives>
+					<zips>
+						<fileset dir="lib" includes="**/*.jar"/>
+					</zips>
+				</archives>
+			</restrict>
+			<manifest>
+				<attribute name="Main-Class" value="ui.Main"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="java" depends="compile">
+		<java classname="ui.Main" classpath="classes">
+			<classpath refid="classpath"/>
+		</java>
+	</target>
+
+	<target name="clean">
+		<delete dir="classes"/>
+	</target>
+</project>
