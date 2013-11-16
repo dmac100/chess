@@ -11,6 +11,8 @@ import ui.*;
 import util.FileUtil;
 import domain.*;
 import domain.MoveHistory;
+import domain.pieces.Piece;
+import domain.pieces.PieceType;
 
 public class MainController implements BoardDragHandler, HistoryItemSelectedHandler, DatabaseItemSelectedHandler, EngineItemSelectedHandler, BoardPositionChangedHandler {
 	private static final String TOGA = "/home/david/opt/toga/src/fruit";
@@ -132,9 +134,9 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 	}
 	
 	@Override
-	public void onDrag(Square start, Square end, PromotionChoice promote) {
+	public void onDrag(Square start, Square end, boolean castling, PromotionChoice promote) {
 		try {
-			makeMove(new Move(start, end, promote));
+			makeMove(new Move(start, end, castling, promote));
 		} catch(IllegalMoveException e) {
 			// Don't make move.
 		}

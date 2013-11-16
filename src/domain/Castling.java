@@ -1,14 +1,10 @@
 package domain;
 
+import domain.pieces.Piece;
+import domain.pieces.PieceType;
 
-public class Castling {
-	private static Square a1 = new Square("a1");
-	private static Square h1 = new Square("h1");
-	private static Square a8 = new Square("a8");
-	private static Square h8 = new Square("h8");
-	private static Square e1 = new Square("e1");
-	private static Square e8 = new Square("e8");
-	
+
+public class Castling {	
 	private boolean whiteKingSide;
 	private boolean whiteQueenSide;
 	private boolean blackKingSide;
@@ -44,33 +40,56 @@ public class Castling {
 		return (castle.equals("")) ? "-" : castle;
 	}
 	
-	public Castling nextCastling(Move move) {
+	public Castling nextCastling(Board board, Move move) {
 		Castling next = new Castling(this);
 		Square from = move.getFrom();
-		
-		if(from.equals(a1)) next.whiteQueenSide = false;
-		if(from.equals(h1)) next.whiteKingSide = false;
-		if(from.equals(a8)) next.blackQueenSide = false;
-		if(from.equals(h8)) next.blackKingSide = false;
 
-		if(from.equals(e1)) {
-			next.whiteKingSide = false;
-			next.whiteQueenSide = false;
-		}
+		Square kingSquare = getPiece(board, PieceType.KING, board.getSideToPlay());
+
+		Piece piece = board.getPiece(move.getFrom());
 		
-		if(from.equals(e8)) {
-			next.blackKingSide = false;
-			next.blackQueenSide = false;
+		if(piece.getPieceType() == PieceType.ROOK) {
+			if(board.getSideToPlay() == Side.WHITE) {
+				if(piece.getSquare().getX() < kingSquare.getX()) next.whiteQueenSide = false;
+				if(piece.getSquare().getX() > kingSquare.getX()) next.whiteKingSide = false;
+			} else {
+				if(piece.getSquare().getX() < kingSquare.getX()) next.blackQueenSide = false;
+				if(piece.getSquare().getX() > kingSquare.getX()) next.blackKingSide = false;
+			}
+		}
+
+		if(from.equals(kingSquare)) {
+			if(board.getSideToPlay() == Side.WHITE) {
+				next.whiteKingSide = false;
+				next.whiteQueenSide = false;
+			} else {
+				next.blackKingSide = false;
+				next.blackQueenSide = false;
+			}
 		}
 		
 		return next;
 	}
 
+	private Square getPiece(Board board, PieceType type, Side side) {
+		for(int x = 0; x < 8; x++) {
+			for(int y = 0; y < 8; y++) {
+				Square square = new Square(x, y);
+				Piece piece = board.getPiece(square);
+				if(piece != null && piece.getPieceType() == type && piece.getSide() == side) {
+					return square;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
 	/**
 	 * Returns whether a side is allowed to make a castling move.
 	 */
 	public boolean allowedCastle(Side side, Move move) {
-		boolean kingSide = (move.getTo().getX() > move.getFrom().getX());
+		boolean kingSide = (move.getTo().getX() == 6);
 		
 		if(side == Side.WHITE) {
 			if(kingSide && !whiteKingSide) return false;

@@ -187,8 +187,25 @@ public class BoardCanvas {
 								promote = new PromotionDialog(shell).open();
 							}
 							
+							// Allow castling if king is dragged more than one square horizontally, or onto a rook.
+							boolean castling = false;
+							if(piece.getPieceType() == PieceType.KING) {
+								if(Math.abs(draggedFrom.getX() - square.getX()) > 1) {
+									castling = true;
+								}
+								Piece draggedToPiece = board.getPiece(square);
+								if(draggedToPiece != null && draggedToPiece.getPieceType() == PieceType.ROOK) {
+									castling = true;
+								}
+							}
+							
+							// Set correct destination square for castling.
+							if(castling && square.getX() != draggedFrom.getX()) {
+								square = new Square(square.getX() > draggedFrom.getX() ? 6 : 2, square.getY());
+							}
+							
 							for(BoardDragHandler dragHandler:dragHandlers) {
-								dragHandler.onDrag(draggedFrom, square, promote);
+								dragHandler.onDrag(draggedFrom, square, castling, promote);
 							}
 							
 							redraw();

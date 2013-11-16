@@ -66,41 +66,12 @@ public class Board {
 		boolean capture = next.movePiece(from, to);
 		
 		// Castling.
-		if(Math.abs(from.getX() - to.getX()) == 2 && piece.getPieceType() == PieceType.KING) {
-			int x = to.getX();
-			int y = from.getY();
-			
-			if(!castling.allowedCastle(toPlay, move)) {
-				throw new IllegalMoveException("Can't castle. Piece already moved.");
-			}
-			
-			if(to.getX() < from.getX()) {
-				if(pieces[0][y] == null || pieces[0][y].getPieceType() != PieceType.ROOK) {
-					throw new IllegalMoveException("No rook to castle queenside with");
-				}
-				// Move rook from queenside.
-				if(next.movePiece(new Square(0, y), new Square(x + 1, y))) {
-					throw new IllegalMoveException("Blocked by occupied squares");
-				}
-			} else {
-				if(pieces[7][y] == null || pieces[7][y].getPieceType() != PieceType.ROOK) {
-					throw new IllegalMoveException("No rook to castle kingside with");
-				}
-				// Move rook from kingside.
-				if(next.movePiece(new Square(7, y), new Square(x - 1, y))) {
-					// Rook square occupied.
-					throw new IllegalMoveException("Blocked by occupied squares");
-				}
-			}
-			
-			for(int a = Math.min(to.getX(), from.getX()); a <= Math.max(to.getX(), from.getX()); a++) {
-				if(this.isAttacked(new Square(a, y), toPlay.otherSide())) {
-					throw new IllegalMoveException("King starts, moves or ends in check.");
-				}
-			}
+		if(move.getCastling()) {
+			performCastling(next, move);
+			capture = false;
 		}
 
-		next.castling = next.castling.nextCastling(move);
+		next.castling = next.castling.nextCastling(this, move);
 		next.toPlay = next.toPlay.otherSide();
 		next.enPassant = null;
 		
@@ -142,19 +113,83 @@ public class Board {
 		return next;
 	}
 	
+	private void performCastling(Board next, Move move) throws IllegalMoveException {
+		Square from = move.getFrom();
+		Square to = move.getTo();
+		
+		int y = from.getY();
+		int d = (to.getX() == 6) ? 1 : -1;
+		
+		// Check castling rights.
+		if(!castling.allowedCastle(toPlay, move)) {
+			throw new IllegalMoveException("Can't castle. Piece already moved.");
+		}
+		
+		// Find rook.
+		Piece rook = null;
+		for(int a = from.getX(); a >= 0 && a <= 7; a += d) {
+			Piece piece = getPiece(new Square(a, y));
+			if(piece != null && piece.getPieceType() == PieceType.ROOK) {
+				rook = piece;
+			}
+		}
+		
+		if(rook == null) {
+			throw new IllegalMoveException("No rook to castle with");
+		}
+		
+		// Check for king moving through check.
+		for(int a = Math.min(to.getX(), from.getX()); a <= Math.max(to.getX(), from.getX()); a++) {
+			if(this.isAttacked(new Square(a, y), toPlay.otherSide())) {
+				throw new IllegalMoveException("King starts, moves or ends in check.");
+			}
+		}
+
+		// Check for occupied destination square for king.
+		if(!rook.getSquare().equals(to) && !from.equals(to) && getPiece(to) != null) {
+			throw new IllegalMoveException("Blocked by occupied squares");
+		}
+		
+		// Check for occupied destination square for rook.
+		Square rookDestination = new Square(to.getX() - d, y);
+		Piece rookDestinationPiece = getPiece(rookDestination);
+		if(rookDestinationPiece != null) {
+			if(!rookDestinationPiece.getSquare().equals(to) && rookDestinationPiece.getPieceType() != PieceType.KING) {
+				throw new IllegalMoveException("Blocked by occupied squares");
+			}
+		}
+		
+		// Move pieces.
+		Piece king = getPiece(from);
+		next.pieces[king.getSquare().getX()][king.getSquare().getY()] = null;
+		next.pieces[rook.getSquare().getX()][rook.getSquare().getY()] = null;
+		king = king.setSquare(to);
+		rook = rook.setSquare(rookDestination);
+		next.pieces[king.getSquare().getX()][king.getSquare().getY()] = king;
+		next.pieces[rook.getSquare().getX()][rook.getSquare().getY()] = rook;
+	}
+
 	public Board makePgnMove(String pgnMove) throws IllegalMoveException {
 		return makeMove(getPgnMove(pgnMove));
 	}
 	
 	public Move getPgnMove(String pgnMove) throws IllegalMoveException {
 		if(pgnMove.matches("(?x) [oO0] - [oO0] (-[oO0])? [!?+\\#]*")) {
-			// Castling moves. Move the king two squares to the left or right.
-			int x = 4;
+			// Castling moves. Move the king to the destination square.
+			int fromX = -1;
 			int y = (toPlay == Side.WHITE) ? 7 : 0;
+			for(int a = 0; a < 8; a++) {
+				Piece piece = getPiece(new Square(a, y));
+				if(piece != null && piece.getPieceType() == PieceType.KING) {
+					fromX = a;
+				}
+			}
+			
+			if(fromX == -1) throw new IllegalMoveException("Invaid pgn move: " + pgnMove);
 
 			boolean kingside = !pgnMove.matches("[oO0]-[oO0]-[oO0].*");
 			
-			return new Move(new Square(x, y), new Square(kingside ? (x+2) : (x-2), y));
+			return new Move(new Square(fromX, y), new Square(kingside ? 6 : 2, y), true);
 		} else {
 			// Other moves.
 			Pattern pattern = Pattern.compile("(?x) ^ ([RNBQK]?) ([a-h]?[1-8]?) x? ([a-h][1-8]) ((?:=[QNBRqnbr])?) ([!?+\\#]*) $");
@@ -292,8 +327,8 @@ public class Board {
 		}
 		
 		// Handle castling.
-		if(Math.abs(from.getX() - to.getX()) == 2 && piece.getPieceType() == PieceType.KING) {
-			if(to.getX() > from.getX()) {
+		if(move.getCastling()) {
+			if(to.getX() == 6) {
 				return "O-O" + annotation;
 			} else {
 				return "O-O-O" + annotation;

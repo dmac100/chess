@@ -8,6 +8,8 @@ import java.util.regex.Pattern;
 import ui.*;
 import ui.BoardCanvas.BoardArrow;
 import domain.*;
+import domain.pieces.Piece;
+import domain.pieces.PieceType;
 
 public class AnalysisEngine {
 	private Process process;
@@ -122,7 +124,10 @@ public class AnalysisEngine {
 					score = "Black " + score;
 				}
 				
-				engineMoves[rankInt] = new EngineMove(currentPosition, new Move(fromSquare, toSquare, promote), score, scoreNum);
+				Piece piece = currentPosition.getPiece(fromSquare);
+				boolean castling = (piece != null && piece.getPieceType() == PieceType.KING && Math.abs(fromSquare.getX() - toSquare.getX()) > 1);
+				
+				engineMoves[rankInt] = new EngineMove(currentPosition, new Move(fromSquare, toSquare, castling, promote), score, scoreNum);
 			} catch(IllegalMoveException e) {
 				System.err.println("IllegalMove from engine. UCI line: " + line);
 				System.err.println(fromSquare + "-" + toSquare + " -- " + currentPosition.getFen());

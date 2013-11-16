@@ -126,7 +126,7 @@ public class BoardTest {
 		board = board.makePgnMove("0-0");
 		assertEquals("1k6/8/8/8/8/8/8/R4RK1 b - - 1 1", board.getFen());
 	}
-	
+
 	@Test(expected=IllegalMoveException.class)
 	public void castle_notAllowed() throws IllegalMoveException {
 		Board board = new Board("1k6/8/8/8/8/8/8/R3K2R w - - 0 1");
@@ -144,10 +144,16 @@ public class BoardTest {
 		Board board = new Board("1k6/8/8/8/8/8/5r2/R3K2R w K - 0 1");
 		board = board.makePgnMove("0-0");
 	}
+
+	@Test(expected=IllegalMoveException.class)
+	public void castle_toOccupied() throws IllegalMoveException {
+		Board board = new Board("1k6/8/8/8/8/8/8/3RK1NR w K - 0 1");
+		board = board.makePgnMove("0-0");
+	}
 	
 	@Test(expected=IllegalMoveException.class)
-	public void castle_occupied() throws IllegalMoveException {
-		Board board = new Board("1k6/8/8/8/8/8/4r3/3RK2R w K - 0 1");
+	public void castle_throughOccupied() throws IllegalMoveException {
+		Board board = new Board("1k6/8/8/8/8/8/8/3RKB1R w K - 0 1");
 		board = board.makePgnMove("0-0");
 	}
 	
@@ -240,7 +246,7 @@ public class BoardTest {
 	@Test
 	public void getMoveAsPgn_castle() throws IllegalMoveException {
 		Board board = new Board("1k6/8/8/8/8/8/8/R3K2R w K - 0 1");
-		String pgn = board.getMoveAsPgn(new Move(new Square("e1"), new Square("g1")));
+		String pgn = board.getMoveAsPgn(new Move(new Square("e1"), new Square("g1"), true));
 		assertEquals("O-O", pgn);
 	}
 	
@@ -363,8 +369,43 @@ public class BoardTest {
 	
 	@Test(expected=IllegalMoveException.class)
 	public void makeMove_castleWithMovedKing() throws IllegalMoveException {
-		Board board = new Board("5k1r/8/8/8/8/8/8/6K1 b kqKQ - 0 0");
+		Board board = new Board("5k1r/8/8/8/8/8/8/6K1 b - - 0 0");
 		
 		board.makePgnMove("O-O");
+	}
+	
+	@Test
+	public void castleKingside960() throws IllegalMoveException {
+		Board board = new Board("7k/8/8/8/8/8/8/5KR1 w K - 0 0");
+		board = board.makePgnMove("O-O");
+		assertEquals("7k/8/8/8/8/8/8/5RK1 b - - 1 0", board.getFen());
+	}
+	
+	@Test
+	public void castleQueenside960() throws IllegalMoveException {
+		Board board = new Board("7k/8/8/8/8/8/8/R4K2 w Q - 0 0");
+		board = board.makePgnMove("O-O-O");
+		assertEquals("7k/8/8/8/8/8/8/2KR4 b - - 1 0", board.getFen());
+	}
+	
+	@Test
+	public void castleKingside_noKingMove960() throws IllegalMoveException {
+		Board board = new Board("k7/8/8/8/8/8/8/6KR w K - 0 0");
+		board = board.makePgnMove("O-O");
+		assertEquals("k7/8/8/8/8/8/8/5RK1 b - - 1 0", board.getFen());
+	}
+	
+	@Test
+	public void cancelKingsideCastling960() throws IllegalMoveException {
+		Board board = new Board("7k/8/8/8/8/8/8/1R2KR2 w KQ - 0 0");
+		board = board.makePgnMove("Rh1");
+		assertEquals("7k/8/8/8/8/8/8/1R2K2R b Q - 1 0", board.getFen());
+	}
+	
+	@Test
+	public void cancelQueensideCastling960() throws IllegalMoveException {
+		Board board = new Board("7k/8/8/8/8/8/8/1R2KR2 w KQ - 0 0");
+		board = board.makePgnMove("Ra1");
+		assertEquals("7k/8/8/8/8/8/8/R3KR2 b K - 1 0", board.getFen());
 	}
 }

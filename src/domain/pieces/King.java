@@ -32,8 +32,8 @@ public class King extends Piece {
 		
 		if(square.getX() == 4) {
 			// Add castling moves. They will be checked when making a move.
-			moves.add(new Move(square, new Square(2, square.getY())));
-			moves.add(new Move(square, new Square(6, square.getY())));
+			moves.add(new Move(square, new Square(2, square.getY()), true));
+			moves.add(new Move(square, new Square(6, square.getY()), true));
 		}
 		
 		return moves;
