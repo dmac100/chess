@@ -1,6 +1,8 @@
 package domain;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -407,5 +409,54 @@ public class BoardTest {
 		Board board = new Board("7k/8/8/8/8/8/8/1R2KR2 w KQ - 0 0");
 		board = board.makePgnMove("Ra1");
 		assertEquals("7k/8/8/8/8/8/8/R3KR2 b K - 1 0", board.getFen());
+	}
+	
+	@Test
+	public void ambiguousCastling960_canCastleInnerRook() throws IllegalMoveException {
+		Board board = new Board("k7/8/8/8/8/8/7R/4K1R1 w K - 0 0");
+		board = board.makePgnMove("Rhh1");
+		assertEquals("k7/8/8/8/8/8/8/4K1RR b G - 1 0", board.getFen());
+	}
+	
+	@Test
+	public void ambiguousCastling960_canCastleOuterRook() throws IllegalMoveException {
+		Board board = new Board("k7/8/8/8/8/8/5R2/4K1R1 w K - 0 0");
+		board = board.makePgnMove("Rff1");
+		assertEquals("k7/8/8/8/8/8/8/4KRR1 b K - 1 0", board.getFen());
+	}
+	
+	@Test
+	public void ambiguousCastling960_castleInnerRook() throws IllegalMoveException {
+		Board board = new Board("k7/8/8/8/8/8/8/4K1RR w G - 0 0");
+		board = board.makePgnMove("O-O");
+		assertEquals("k7/8/8/8/8/8/8/5RKR b - - 1 0", board.getFen());
+	}
+	
+	@Test
+	public void ambiguousCastling960_moveInnerRook() throws IllegalMoveException {
+		Board board = new Board("k7/8/8/8/8/8/8/4K1RR w K - 0 0");
+		board = board.makePgnMove("Rgg2");
+		assertEquals("k7/8/8/8/8/8/6R1/4K2R b K - 1 0", board.getFen());
+	}
+	
+	@Test
+	public void ambiguousCastling960_moveOuterRook() throws IllegalMoveException {
+		Board board = new Board("k7/8/8/8/8/8/8/4K1RR w G - 0 0");
+		board = board.makePgnMove("Rhh2");
+		assertEquals("k7/8/8/8/8/8/7R/4K1R1 b K - 1 0", board.getFen());
+	}
+	
+	@Test
+	public void ambiguousCastling960_cancelMoveOuterRook() throws IllegalMoveException {
+		Board board = new Board("k7/8/8/8/8/8/8/4K1RR w K - 0 0");
+		board = board.makePgnMove("Rhh2");
+		assertEquals("k7/8/8/8/8/8/7R/4K1R1 b - - 1 0", board.getFen());
+	}
+	
+	@Test
+	public void ambiguousCastling960_cancelMoveInnerRook() throws IllegalMoveException {
+		Board board = new Board("k7/8/8/8/8/8/8/4K1RR w G - 0 0");
+		board = board.makePgnMove("Rgg2");
+		assertEquals("k7/8/8/8/8/8/6R1/4K2R b - - 1 0", board.getFen());
 	}
 }

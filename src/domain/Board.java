@@ -121,7 +121,7 @@ public class Board {
 		int d = (to.getX() == 6) ? 1 : -1;
 		
 		// Check castling rights.
-		if(!castling.allowedCastle(toPlay, move)) {
+		if(!castling.allowedCastle(this, toPlay, move)) {
 			throw new IllegalMoveException("Can't castle. Piece already moved.");
 		}
 		
@@ -131,6 +131,7 @@ public class Board {
 			Piece piece = getPiece(new Square(a, y));
 			if(piece != null && piece.getPieceType() == PieceType.ROOK) {
 				rook = piece;
+				break;
 			}
 		}
 		
@@ -284,7 +285,7 @@ public class Board {
 			}
 			
 			if(ambiguity.length() > 1) {
-				ambiguity = from.getFile() + from.getRank();
+				ambiguity = String.valueOf(from.getFile()) + String.valueOf(from.getRank());
 			}
 		}
 		
@@ -306,7 +307,7 @@ public class Board {
 				pieceName = "";
 			} else {
 				// Pawn move with capture - add from file name.
-				pieceName = from.getFile();
+				pieceName = String.valueOf(from.getFile());
 			}
 		}
 		
@@ -668,7 +669,7 @@ public class Board {
 			for(Move move:piece.getPossibleMoves(this)) {
 				// Skip pawn moves that are not captures.
 				if(piece.getPieceType() == PieceType.PAWN) {
-					if(move.getFrom().getFile().equals(move.getTo().getFile())) {
+					if(move.getFrom().getFile() == (move.getTo().getFile())) {
 						continue;
 					}
 				}

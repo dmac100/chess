@@ -59,15 +59,15 @@ public final class Square {
 		return y;
 	}
 	
-	public String getRank() {
-		return String.valueOf(8 - y);
+	public char getRank() {
+		return (char)('0' + (8 - y));
 	}
 	
-	public String getFile() {
-		return String.valueOf("abcdefgh".toCharArray()[x]);
+	public char getFile() {
+		return "abcdefgh".toCharArray()[x];
 	}
 	
 	public String toString() {
-		return getFile() + getRank();
+		return String.valueOf(getFile()) + String.valueOf(getRank());
 	}
 }
