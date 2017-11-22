@@ -103,7 +103,7 @@ public class PgnImporter {
 		
 		if(result.equals("0-1")) return GameResult.BLACK_WIN;
 		if(result.equals("1-0")) return GameResult.WHITE_WIN;
-		if(result.equals("1/2-1/2")) return GameResult.WHITE_WIN;
+		if(result.equals("1/2-1/2")) return GameResult.DRAW;
 		
 		return GameResult.OTHER;
 	}
