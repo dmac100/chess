@@ -194,7 +194,7 @@ public class BoardCanvas {
 									castling = true;
 								}
 								Piece draggedToPiece = board.getPiece(square);
-								if(draggedToPiece != null && draggedToPiece.getPieceType() == PieceType.ROOK) {
+								if(draggedToPiece != null && draggedToPiece.getPieceType() == PieceType.ROOK && draggedToPiece.getSide() == board.getSideToPlay()) {
 									castling = true;
 								}
 							}
