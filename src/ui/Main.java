@@ -553,6 +553,7 @@ public class Main {
 		Options options = new Options();
 		options.addOption(new Option("f", "fen", true, "set the initial position from a FEN string"));
 		options.addOption(new Option("p", "pgn", true, "loads a PGN file"));
+		options.addOption(new Option("d", "database", true, "loads a database file"));
 		options.addOption(new Option("h", "help", false, "show help"));
 		
 		try {
@@ -567,6 +568,10 @@ public class Main {
 				mainController.openFile(command.getOptionValue("p"));
 			} else if(command.hasOption("f")) {
 				mainController.setFen(command.getOptionValue("f"));
+			}
+			
+			if(command.hasOption("d")) {
+				mainController.importDatabase(command.getOptionValue("d"));
 			}
 		} catch(Throwable e) {
 			// Print usage and exit on any error.
