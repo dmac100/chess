@@ -5,18 +5,24 @@ import java.util.*;
 import domain.*;
 
 public class PgnGame {
+	private String pgn;
 	private Map<String, String> tags;
 	private MoveHistoryNode moves;
 	private GameResult result;
 	private Board initialPosition;
 
-	public PgnGame(Map<String, String> tags, MoveHistoryNode moves, GameResult result, Board initialPosition) {
+	public PgnGame(String pgn, Map<String, String> tags, MoveHistoryNode moves, GameResult result, Board initialPosition) {
+		this.pgn = pgn;
 		this.tags = tags;
 		this.moves = moves;
 		this.result = result;
 		this.initialPosition = initialPosition;
 	}
 
+	public String getPgn() {
+		return pgn;
+	}
+	
 	public Map<String, String> getTags() {
 		return tags;
 	}

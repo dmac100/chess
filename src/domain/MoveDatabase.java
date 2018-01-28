@@ -1,10 +1,13 @@
 package domain;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.hibernate.SessionFactory;
 
 import pgn.PgnGame;
 
@@ -12,8 +15,6 @@ import pgn.PgnGame;
  * A move database storing the win/draw/loss counts for the moves played at each position.
  */
 public class MoveDatabase {
-	private SessionFactory sessionFactory;
-
 	public Connection getConnection() {
 		try {
 			Class.forName("org.hsqldb.jdbcDriver");
@@ -37,11 +38,46 @@ public class MoveDatabase {
 		try {
 			connection = getConnection();
 			connection.createStatement().execute("drop schema public cascade");
+			connection.createStatement().execute("create table Game ( id int identity primary key, pgn varchar(10000) )");
 			connection.createStatement().execute("create table PositionMove ( id int identity primary key," +
-				"positionText varchar(100), moveFrom char(2), moveTo char(2), castling boolean, promote char(1), win int, draw int, loss int )");
+				"gameId int, positionText varchar(100), moveFrom char(2), moveTo char(2), castling boolean, promote char(1), win int, draw int, loss int )");
 			connection.createStatement().execute("create index positionTextIndex on PositionMove ( positionText )");
 		} finally {
 			close(connection);
+		}
+	}
+	
+	/**
+	 * Adds a pgn game to the database and returns its id.
+	 */
+	public int addGame(String pgn) {
+		try(Connection connection = getConnection()) {
+			PreparedStatement statement = connection.prepareStatement("insert into Game values ( NULL, ? )",  Statement.RETURN_GENERATED_KEYS);
+			statement.setString(1, pgn);
+			statement.executeUpdate();
+			
+			try(ResultSet resultSet = statement.getGeneratedKeys()) {
+				resultSet.next();
+				return resultSet.getInt(1);
+			}
+		} catch(SQLException e) {
+			throw new RuntimeException("Error adding game", e);
+		}
+	}
+	
+	/**
+	 * Returns the pgn for a game given its id.
+	 */
+	public String getGame(int gameId) {
+		try(Connection connection = getConnection()) {
+			PreparedStatement statement = connection.prepareStatement("select pgn from Game where id = ?");
+			statement.setInt(1, gameId);
+			try(ResultSet resultSet = statement.executeQuery()) {
+				resultSet.next();
+				return resultSet.getString(1);
+			}
+		} catch(SQLException e) {
+			throw new RuntimeException("Error getting game", e);
 		}
 	}
 	
@@ -64,21 +100,22 @@ public class MoveDatabase {
 		int[] winDrawLoss = getWinDrawLoss(connection, board, move);
 		
 		if(winDrawLoss == null) {
-			PreparedStatement statement = connection.prepareStatement("insert into PositionMove values ( NULL, ?, ?, ?, ?, ?, ?, ?, ?)");
+			PreparedStatement statement = connection.prepareStatement("insert into PositionMove values ( NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			
-			statement.setString(1, board.getPositionDatabaseString());
-			statement.setString(2, move.getMove().getFrom().toString());
-			statement.setString(3, move.getMove().getTo().toString());
-			statement.setBoolean(4, move.getMove().getCastling());
+			statement.setInt(1, move.getGameId());
+			statement.setString(2, board.getPositionDatabaseString());
+			statement.setString(3, move.getMove().getFrom().toString());
+			statement.setString(4, move.getMove().getTo().toString());
+			statement.setBoolean(5, move.getMove().getCastling());
 			if(move.getMove().getPromote() == null) {
-				statement.setString(5, "");
+				statement.setString(6, "");
 			} else {
-				statement.setString(5, String.valueOf(move.getMove().getPromote().getAlgebraic()));
+				statement.setString(6, String.valueOf(move.getMove().getPromote().getAlgebraic()));
 			}
 			
-			statement.setInt(6, move.getWin());
-			statement.setInt(7, move.getDraw());
-			statement.setInt(8, move.getLoss());
+			statement.setInt(7, move.getWin());
+			statement.setInt(8, move.getDraw());
+			statement.setInt(9, move.getLoss());
 			
 			statement.execute();
 		} else {
@@ -154,13 +191,14 @@ public class MoveDatabase {
 		ResultSet resultSet = statement.getResultSet();
 		
 		while(resultSet.next()) {
-			String moveFrom = resultSet.getString(3);
-			String moveTo = resultSet.getString(4);
-			boolean castling = resultSet.getBoolean(5);
-			String promote = resultSet.getString(6);
-			int win = resultSet.getInt(7);
-			int draw = resultSet.getInt(8);
-			int loss = resultSet.getInt(9);
+			int gameId = resultSet.getInt(2);
+			String moveFrom = resultSet.getString(4);
+			String moveTo = resultSet.getString(5);
+			boolean castling = resultSet.getBoolean(6);
+			String promote = resultSet.getString(7);
+			int win = resultSet.getInt(8);
+			int draw = resultSet.getInt(9);
+			int loss = resultSet.getInt(10);
 			
 			Square fromSquare = new Square(moveFrom);
 			Square toSquare = new Square(moveTo);
@@ -169,7 +207,7 @@ public class MoveDatabase {
 			if(promote.equals("q")) promotePiece = PromotionChoice.QUEEN;
 			if(promote.equals("n")) promotePiece = PromotionChoice.KNIGHT;
 			if(promote.equals("b")) promotePiece = PromotionChoice.BISHOP;
-			moves.add(new DatabaseMove(new Move(fromSquare, toSquare, castling, promotePiece), win, draw, loss));
+			moves.add(new DatabaseMove(gameId, new Move(fromSquare, toSquare, castling, promotePiece), win, draw, loss));
 		}
 		
 		return moves;
@@ -208,12 +246,14 @@ public class MoveDatabase {
 						System.out.println("Skipping game with unknown result: " + game.toString());
 						continue;
 					}
+					
+					int gameId = addGame(game.getPgn());
 						
 					Board board = new Board();
 					for(Move move:game.getMainLine()) {
 						moves++;
 						
-						addMove(connection, board, new DatabaseMove(move, win, draw, loss));
+						addMove(connection, board, new DatabaseMove(gameId, move, win, draw, loss));
 						
 						board = board.makeMove(move);
 					}

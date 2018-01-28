@@ -6,13 +6,31 @@ import java.util.List;
 
 import org.eclipse.swt.widgets.Display;
 
-import pgn.*;
-import ui.*;
-import util.FileUtil;
-import domain.*;
+import domain.Board;
+import domain.EcoClassifier;
+import domain.EngineMove;
+import domain.IllegalMoveException;
+import domain.Move;
+import domain.MoveDatabase;
 import domain.MoveHistory;
-import domain.pieces.Piece;
-import domain.pieces.PieceType;
+import domain.MoveHistoryNode;
+import domain.PromotionChoice;
+import domain.Side;
+import domain.Square;
+import pgn.ParseException;
+import pgn.PgnExporter;
+import pgn.PgnGame;
+import pgn.PgnImporter;
+import ui.BoardCanvas;
+import ui.BoardDragHandler;
+import ui.BoardPositionChangedHandler;
+import ui.DatabaseItemSelectedHandler;
+import ui.DatabaseView;
+import ui.EngineItemSelectedHandler;
+import ui.EngineMovesTable;
+import ui.HistoryItemSelectedHandler;
+import ui.MoveHistoryTree;
+import util.FileUtil;
 
 public class MainController implements BoardDragHandler, HistoryItemSelectedHandler, DatabaseItemSelectedHandler, EngineItemSelectedHandler, BoardPositionChangedHandler {
 	private static final String TOGA = "/home/david/opt/toga/src/fruit";
