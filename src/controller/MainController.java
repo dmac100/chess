@@ -24,7 +24,8 @@ import pgn.PgnImporter;
 import ui.BoardCanvas;
 import ui.BoardDragHandler;
 import ui.BoardPositionChangedHandler;
-import ui.DatabaseItemSelectedHandler;
+import ui.DatabaseGameSelectedHandler;
+import ui.DatabaseMoveSelectedHandler;
 import ui.DatabaseView;
 import ui.EngineItemSelectedHandler;
 import ui.EngineMovesTable;
@@ -32,7 +33,7 @@ import ui.HistoryItemSelectedHandler;
 import ui.MoveHistoryTree;
 import util.FileUtil;
 
-public class MainController implements BoardDragHandler, HistoryItemSelectedHandler, DatabaseItemSelectedHandler, EngineItemSelectedHandler, BoardPositionChangedHandler {
+public class MainController implements BoardDragHandler, HistoryItemSelectedHandler, DatabaseMoveSelectedHandler, DatabaseGameSelectedHandler, EngineItemSelectedHandler, BoardPositionChangedHandler {
 	private static final String TOGA = "/home/david/opt/toga/src/fruit";
 	
 	private final BoardCanvas boardCanvas;
@@ -62,7 +63,8 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		boardCanvas.addDragHandler(this);
 		boardCanvas.addPositionChangedHandler(this);
 		moveHistoryTree.addHistoryItemSelectedHandler(this);
-		databaseView.addDatabaseItemSelectedHandler(this);
+		databaseView.addMoveSelectedHandler(this);
+		databaseView.addGameSelectedHandler(this);
 		engineMovesTable.addHistoryItemSelectedHandler(this);
 		
 		try {
@@ -92,7 +94,7 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 				boardCanvas.setBoard(board);
 				boardCanvas.setEditPosition(editPosition);
 				databaseView.setMoves(board, moveDatabase.getMoves(board));
-				
+				databaseView.setGames(moveDatabase.getGames(board));
 				databaseView.setOpening(ecoClassifier.classify(history.getMoves()));
 			}
 		});
@@ -161,13 +163,22 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 	}
 	
 	@Override
-	public void onDatabaseItemSelected(Move move) {
+	public void onDatabaseMoveSelected(Move move) {
 		try {
 			Board board = history.getCurrentPosition();
 			history.makeMove(move);
 			updateView();
 		} catch (IllegalMoveException e) {
 			throw new RuntimeException("Illegal move in database", e);
+		}
+	}
+	
+	@Override
+	public void onDatabaseGameSelected(String pgn) {
+		try {
+			setPgn(pgn);
+		} catch(ControllerException e) {
+			throw new RuntimeException("Error loading database game", e);
 		}
 	}
 

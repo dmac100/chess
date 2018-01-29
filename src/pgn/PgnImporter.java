@@ -49,7 +49,7 @@ public class PgnImporter {
 					MoveHistoryNode moves = new MoveTextParser().parseMoveText(initialPosition, section);
 					GameResult result = getResult(section);
 					
-					games.add(new PgnGame(section, tags, moves, result, initialPosition));
+					games.add(new PgnGame(createPgn(tags, section), tags, moves, result, initialPosition));
 					
 					if(games.size() % 100 == 0) {
 						System.out.println("Loaded: " + games.size() + " games.");
@@ -65,6 +65,18 @@ public class PgnImporter {
 		return games;
 	}
 	
+	private static String createPgn(Map<String, String> tags, String section) {
+		StringBuilder pgn = new StringBuilder();
+		
+		tags.forEach((k, v) -> {
+			pgn.append("[" + k + " \"" + v + "\"]\n");
+		});
+		pgn.append("\n");
+		pgn.append(section);
+		
+		return pgn.toString();
+	}
+
 	/**
 	 * Returns the initial position if it is specified in the tags, or the default position if not.
 	 */
