@@ -49,7 +49,7 @@ public class PgnImporter {
 					MoveHistoryNode moves = new MoveTextParser().parseMoveText(initialPosition, section);
 					GameResult result = getResult(section);
 					
-					games.add(new PgnGame(pgn, tags, moves, result, initialPosition));
+					games.add(new PgnGame(section, tags, moves, result, initialPosition));
 					
 					if(games.size() % 100 == 0) {
 						System.out.println("Loaded: " + games.size() + " games.");
