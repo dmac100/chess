@@ -163,6 +163,30 @@ public class MoveDatabase {
 	}
 	
 	/**
+	 * Returns a list of games that reached the given position.
+	 */
+	public List<String> getGames(Board board) {
+		List<String> games = new ArrayList<>();
+		
+		try(Connection connection = getConnection()) {
+			try(PreparedStatement statement = connection.prepareStatement("select pgn from PositionGame inner join Game on Game.id = PositionGame.gameId where positionText=?")) {
+				statement.setString(1, board.getPositionDatabaseString());
+				statement.execute();
+				
+				try(ResultSet resultSet = statement.getResultSet()) {
+					while(resultSet.next()) {
+						games.add(resultSet.getString(1));
+					}
+				}
+			}
+		} catch(SQLException e) {
+			throw new RuntimeException("Error getting games", e);
+		}
+		
+		return games;
+	}
+	
+	/**
 	 * Returns a list of moves played at the given position.
 	 */
 	public List<DatabaseMove> getMoves(Board board) {

@@ -2,6 +2,7 @@ package domain;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
@@ -79,5 +80,18 @@ public class MoveDatabaseTest {
 		assertEquals(0, database.addGame("abc"));
 		assertEquals(1, database.addGame("abc"));
 		assertEquals("abc", database.getGame(1));
+	}
+	
+	@Test
+	public void getGames() {
+		MoveDatabase database = new MoveDatabase();
+		database.addGame("abc");
+		database.addGame("def");
+		
+		database.addMove(0, new Board(), new DatabaseMove(new Move("e2", "e4"), 1, 0, 0));
+		database.addMove(1, new Board(), new DatabaseMove(new Move("e2", "e4"), 1, 0, 0));
+		
+		assertEquals(Arrays.asList("abc", "def"), database.getGames(new Board()));
+		
 	}
 }
