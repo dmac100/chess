@@ -1,22 +1,16 @@
 package domain;
 
 public class DatabaseMove {
-	private int gameId;
 	private Move move;
 	private int win;
 	private int draw;
 	private int loss;
 	
-	public DatabaseMove(int gameId, Move move, int win, int draw, int loss) {
-		this.gameId = gameId;
+	public DatabaseMove(Move move, int win, int draw, int loss) {
 		this.move = move;
 		this.win = win;
 		this.draw = draw;
 		this.loss = loss;
-	}
-	
-	public int getGameId() {
-		return gameId;
 	}
 	
 	public Move getMove() {

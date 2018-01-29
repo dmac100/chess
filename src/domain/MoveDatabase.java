@@ -33,7 +33,7 @@ public class MoveDatabase {
 			connection.createStatement().execute("drop schema public cascade");
 			connection.createStatement().execute("create table Game ( id int identity primary key, pgn varchar(10000) )");
 			connection.createStatement().execute("create table PositionMove ( id int identity primary key," +
-					"gameId int, positionText varchar(100), moveFrom char(2), moveTo char(2), castling boolean, promote char(1), win int, draw int, loss int )");
+					"positionText varchar(100), moveFrom char(2), moveTo char(2), castling boolean, promote char(1), win int, draw int, loss int )");
 			connection.createStatement().execute("create index positionTextIndex on PositionMove ( positionText )");
 		} catch(SQLException e) {
 			throw new RuntimeException("Error creating tables", e);
@@ -89,21 +89,20 @@ public class MoveDatabase {
 		int[] winDrawLoss = getWinDrawLoss(connection, board, move);
 		
 		if(winDrawLoss == null) {
-			try(PreparedStatement statement = connection.prepareStatement("insert into PositionMove values ( NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-				statement.setInt(1, move.getGameId());
-				statement.setString(2, board.getPositionDatabaseString());
-				statement.setString(3, move.getMove().getFrom().toString());
-				statement.setString(4, move.getMove().getTo().toString());
-				statement.setBoolean(5, move.getMove().getCastling());
+			try(PreparedStatement statement = connection.prepareStatement("insert into PositionMove values ( NULL, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+				statement.setString(1, board.getPositionDatabaseString());
+				statement.setString(2, move.getMove().getFrom().toString());
+				statement.setString(3, move.getMove().getTo().toString());
+				statement.setBoolean(4, move.getMove().getCastling());
 				if(move.getMove().getPromote() == null) {
-					statement.setString(6, "");
+					statement.setString(5, "");
 				} else {
-					statement.setString(6, String.valueOf(move.getMove().getPromote().getAlgebraic()));
+					statement.setString(5, String.valueOf(move.getMove().getPromote().getAlgebraic()));
 				}
 				
-				statement.setInt(7, move.getWin());
-				statement.setInt(8, move.getDraw());
-				statement.setInt(9, move.getLoss());
+				statement.setInt(6, move.getWin());
+				statement.setInt(7, move.getDraw());
+				statement.setInt(8, move.getLoss());
 				
 				statement.execute();
 			}
@@ -174,14 +173,13 @@ public class MoveDatabase {
 			
 			try(ResultSet resultSet = statement.getResultSet()) {
 				while(resultSet.next()) {
-					int gameId = resultSet.getInt(2);
-					String moveFrom = resultSet.getString(4);
-					String moveTo = resultSet.getString(5);
-					boolean castling = resultSet.getBoolean(6);
-					String promote = resultSet.getString(7);
-					int win = resultSet.getInt(8);
-					int draw = resultSet.getInt(9);
-					int loss = resultSet.getInt(10);
+					String moveFrom = resultSet.getString(3);
+					String moveTo = resultSet.getString(4);
+					boolean castling = resultSet.getBoolean(5);
+					String promote = resultSet.getString(6);
+					int win = resultSet.getInt(7);
+					int draw = resultSet.getInt(8);
+					int loss = resultSet.getInt(9);
 					
 					Square fromSquare = new Square(moveFrom);
 					Square toSquare = new Square(moveTo);
@@ -190,7 +188,7 @@ public class MoveDatabase {
 					if(promote.equals("q")) promotePiece = PromotionChoice.QUEEN;
 					if(promote.equals("n")) promotePiece = PromotionChoice.KNIGHT;
 					if(promote.equals("b")) promotePiece = PromotionChoice.BISHOP;
-					moves.add(new DatabaseMove(gameId, new Move(fromSquare, toSquare, castling, promotePiece), win, draw, loss));
+					moves.add(new DatabaseMove(new Move(fromSquare, toSquare, castling, promotePiece), win, draw, loss));
 				}
 				
 				return moves;
@@ -225,7 +223,7 @@ public class MoveDatabase {
 					for(Move move:game.getMainLine()) {
 						moves++;
 						
-						addMove(connection, board, new DatabaseMove(gameId, move, win, draw, loss));
+						addMove(connection, board, new DatabaseMove(move, win, draw, loss));
 						
 						board = board.makeMove(move);
 					}
