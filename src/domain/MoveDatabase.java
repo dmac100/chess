@@ -32,9 +32,11 @@ public class MoveDatabase {
 		try(Connection connection = getConnection()) {
 			connection.createStatement().execute("drop schema public cascade");
 			connection.createStatement().execute("create table Game ( id int identity primary key, pgn varchar(10000) )");
+			connection.createStatement().execute("create table PositionGame ( id int identity primary key, positionText varchar(100), gameId int )");
 			connection.createStatement().execute("create table PositionMove ( id int identity primary key," +
 					"positionText varchar(100), moveFrom char(2), moveTo char(2), castling boolean, promote char(1), win int, draw int, loss int )");
-			connection.createStatement().execute("create index positionTextIndex on PositionMove ( positionText )");
+			connection.createStatement().execute("create index GamePositionTextIndex on PositionMove ( positionText )");
+			connection.createStatement().execute("create index MovePositionTextIndex on PositionGame ( positionText )");
 		} catch(SQLException e) {
 			throw new RuntimeException("Error creating tables", e);
 		}
@@ -77,16 +79,23 @@ public class MoveDatabase {
 	/**
 	 * Add a move for the given position, updating any already existing move for the position.
 	 */
-	public void addMove(Board board, DatabaseMove move) {
+	public void addMove(int gameId, Board board, DatabaseMove move) {
 		try(Connection connection = getConnection()) {
-			addMove(connection, board, move);
+			addMove(connection, gameId, board, move);
 		} catch(SQLException e) {
 			throw new RuntimeException("Error adding move", e);
 		}
 	}
 	
-	public void addMove(Connection connection, Board board, DatabaseMove move) throws SQLException {
+	public void addMove(Connection connection, int gameId, Board board, DatabaseMove move) throws SQLException {
 		int[] winDrawLoss = getWinDrawLoss(connection, board, move);
+		
+		try(PreparedStatement statement = connection.prepareStatement("insert into PositionGame values ( NULL, ?, ? )")) {
+			statement.setString(1, board.getPositionDatabaseString());
+			statement.setInt(2, gameId);
+			
+			statement.execute();
+		}
 		
 		if(winDrawLoss == null) {
 			try(PreparedStatement statement = connection.prepareStatement("insert into PositionMove values ( NULL, ?, ?, ?, ?, ?, ?, ?, ?)")) {
@@ -223,7 +232,7 @@ public class MoveDatabase {
 					for(Move move:game.getMainLine()) {
 						moves++;
 						
-						addMove(connection, board, new DatabaseMove(move, win, draw, loss));
+						addMove(connection, gameId, board, new DatabaseMove(move, win, draw, loss));
 						
 						board = board.makeMove(move);
 					}
