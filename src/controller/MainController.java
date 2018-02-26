@@ -245,6 +245,11 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		history.last();
 		updateView();
 	}
+	
+	public void randomMove() {
+		history.nextRandom();
+		updateView();
+	}
 
 	public void flipBoard() {
 		flipped = !flipped;

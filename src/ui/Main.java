@@ -26,6 +26,8 @@ public class Main {
 				mainController.nextMove();
 			} else if(event.character == ' ') {
 				mainController.makeEngineMove();
+			} else if(event.character == 'r') {
+				mainController.randomMove();
 			}
 		}
 	}

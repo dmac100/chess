@@ -1,8 +1,13 @@
 package domain;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 public class MoveHistory {
+	private Random random = new Random();
+	
 	private MutableMoveHistoryNode root = new MutableMoveHistoryNode(null, null);
 	private MutableMoveHistoryNode position = root;
 	private Board initialPosition = new Board();
@@ -106,6 +111,13 @@ public class MoveHistory {
 		position = root;
 		while(position.getNextNodes().size() > 0) {
 			position = position.getNextNodes().get(0);
+		}
+	}
+	
+	public void nextRandom() {
+		int moves = position.getNextNodes().size();
+		if(moves > 0) {
+			position = position.getNextNodes().get(random.nextInt(moves));
 		}
 	}
 
