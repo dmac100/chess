@@ -39,7 +39,7 @@ public class PgnImporter {
 				if(section.startsWith("[")) {
 					tags = parseTags(section);
 				} else if(section.startsWith("1")) {
-					if(tags.containsKey("Variant")) {
+					if(tags.containsKey("Variant") && !tags.get("Variant").equals("Standard")) {
 						System.out.println("Skipping variant: " + tags.get("Variant"));
 						continue;
 					}
