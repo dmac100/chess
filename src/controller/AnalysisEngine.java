@@ -82,7 +82,7 @@ public class AnalysisEngine {
 	}
 	
 	private void handleEngineOutput(String line) {
-		if(line.startsWith("info multipv")) {
+		if(line.startsWith("info") && line.contains("multipv")) {
 			// Example: info multipv 10 depth 10 seldepth 40 score cp -56 time 3956 nodes 3366368 pv a7a6 b1c3 b8c6 d2d4 d7d6 g1f3 g8f6 c1f4 b7b5 f1d3
 			// Example: info multipv 6 depth 1 seldepth 10 score mate -2 time 1 nodes 691 pv f1g2 d8h4 e1f1 h4f2
 			

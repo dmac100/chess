@@ -34,7 +34,7 @@ import ui.MoveHistoryTree;
 import util.FileUtil;
 
 public class MainController implements BoardDragHandler, HistoryItemSelectedHandler, DatabaseMoveSelectedHandler, DatabaseGameSelectedHandler, EngineItemSelectedHandler, BoardPositionChangedHandler {
-	private static final String TOGA = "/home/david/opt/toga/src/fruit";
+	private static final String ENGINE_CMD = "stockfish";
 	
 	private final BoardCanvas boardCanvas;
 	private final MoveHistoryTree moveHistoryTree;
@@ -68,7 +68,7 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		engineMovesTable.addHistoryItemSelectedHandler(this);
 		
 		try {
-			this.analysisEngine = new AnalysisEngine(TOGA, engineMovesTable, boardCanvas);
+			this.analysisEngine = new AnalysisEngine(ENGINE_CMD, engineMovesTable, boardCanvas);
 		} catch (IOException e) {
 			System.err.println("Error creating engine: " + e.getMessage());
 		}
