@@ -1,17 +1,36 @@
 package ui;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.*;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Widget;
 
 import controller.MainController;
 import domain.Side;
 
 public class Main {
+	private final CommandList commandList = new CommandList();
+	
 	private MainController mainController;
 	private Shell shell;
 	private MoveHistoryTree moveHistoryTree;
@@ -112,25 +131,11 @@ public class Main {
 	}
 
 	private void createMenuBar(final Shell shell) {
-		Menu menu = new Menu(shell, SWT.BAR);
+		MenuBuilder menuBuilder = new MenuBuilder(shell, commandList);
 		
-		MenuItem fileMenuItem = new MenuItem(menu, SWT.MENU);
-		fileMenuItem.setText("File");
-		Menu fileMenu = new Menu(fileMenuItem);
-		fileMenuItem.setMenu(fileMenu);
-		
-		MenuItem newItem = new MenuItem(fileMenu, SWT.NONE);
-		newItem.setText("New Game");
-		newItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
-				mainController.newGame();
-			}
-		});
-		
-		MenuItem openItem = new MenuItem(fileMenu, SWT.NONE);
-		openItem.setText("Open...");
-		openItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+		menuBuilder.addMenu("File")
+			.addItem("New Game").addSelectionListener(() -> mainController.newGame())
+			.addItem("Open...").addSelectionListener(() -> {
 				String selected = selectPgnWithDialog();
 				if(selected != null) {
 					try {
@@ -139,13 +144,8 @@ public class Main {
 						displayException(e);
 					}
 				}
-			}
-		});
-		
-		MenuItem importDatabaseItem = new MenuItem(fileMenu, SWT.NONE);
-		importDatabaseItem.setText("Import Database...");
-		importDatabaseItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addItem("Import Database...").addSelectionListener(() -> {
 				String selected = selectPgnWithDialog();
 				if(selected != null) {
 					try {
@@ -154,15 +154,9 @@ public class Main {
 						displayException(e);
 					}
 				}
-			}
-		});
-		
-		new MenuItem(fileMenu, SWT.SEPARATOR);
-		
-		MenuItem enterFen = new MenuItem(fileMenu, SWT.NONE);
-		enterFen.setText("Enter FEN...");
-		enterFen.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addSeparator()
+			.addItem("Enter FEN...").addSelectionListener(() -> {
 				String fen = selectFenWithDialog();
 				if(fen != null) {
 					try {
@@ -171,25 +165,14 @@ public class Main {
 						displayException(e);
 					}
 				}
-			}
-		});
-		
-		MenuItem displayFen = new MenuItem(fileMenu, SWT.NONE);
-		displayFen.setText("Display FEN...");
-		displayFen.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addItem("Display FEN...").addSelectionListener(() -> {
 				String fen = mainController.getFen();
 				System.out.println(fen);
 				displayFenDialog(fen);
-			}
-		});
-		
-		new MenuItem(fileMenu, SWT.SEPARATOR);
-		
-		MenuItem enterPgn = new MenuItem(fileMenu, SWT.NONE);
-		enterPgn.setText("Enter PGN...");
-		enterPgn.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addSeparator()
+			.addItem("Enter PGN...").addSelectionListener(() -> {
 				try {
 					TextAreaDialog pgnDialog = new TextAreaDialog(shell, "PGN", true);
 					String pgnText = pgnDialog.open();
@@ -199,13 +182,8 @@ public class Main {
 				} catch(Exception e) {
 					displayException(e);
 				}
-			}
-		});
-		
-		MenuItem displayPgn = new MenuItem(fileMenu, SWT.NONE);
-		displayPgn.setText("Display PGN...");
-		displayPgn.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addItem("Display PGN...").addSelectionListener(() -> {
 				try {
 					String pgn = mainController.getPgn();
 					TextAreaDialog pgnDialog = new TextAreaDialog(shell, "PGN", false);
@@ -214,13 +192,8 @@ public class Main {
 				} catch(Exception e) {
 					displayException(e);
 				}
-			}
-		});
-		
-		MenuItem saveItem = new MenuItem(fileMenu, SWT.NONE);
-		saveItem.setText("Save PGN...");
-		saveItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addItem("Save PGN...").addSelectionListener(() -> {
 				String selected = selectSaveLocationWithDialog();
 				if(selected != null) {
 					try {
@@ -229,83 +202,34 @@ public class Main {
 						displayException(e);
 					}
 				}
-			}
-		});
+			})
+			.addSeparator()
+			.addItem("Run Command...\tCtrl+3").addSelectionListener(() -> runCommand()).setAccelerator(SWT.CONTROL | '3')
+			.addSeparator()
+			.addItem("Exit").addSelectionListener(() -> shell.dispose());
 		
-		new MenuItem(fileMenu, SWT.SEPARATOR);
-		
-		MenuItem exitItem = new MenuItem(fileMenu, SWT.NONE);
-		exitItem.setText("Exit");
-		exitItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
-				shell.dispose();
-			}
-		});
-		
-		MenuItem viewMenuItem = new MenuItem(menu, SWT.MENU);
-		viewMenuItem.setText("View");
-		Menu viewMenu = new Menu(viewMenuItem);
-		viewMenuItem.setMenu(viewMenu);
-		
-		MenuItem flipItem = new MenuItem(viewMenu, SWT.NONE);
-		flipItem.setText("Flip Board");
-		flipItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
-				mainController.flipBoard();
-			}
-		});
-		
-		new MenuItem(viewMenu, SWT.SEPARATOR);
-		
-		MenuItem showMoveArrowsItem = new MenuItem(viewMenu, SWT.NONE);
-		showMoveArrowsItem.setText("Show Move Arrows");
-		showMoveArrowsItem.setEnabled(!mainController.areMoveArrowsShown());
-		showMoveArrowsItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+		menuBuilder.addMenu("View")
+			.addItem("Flip Board").addSelectionListener(() -> mainController.flipBoard())
+			.addSeparator()
+			.addItem("Show Move Arrows").addSelectionListener(() -> {
 				mainController.showMoveArrows();
 				createMenuBar(shell);
-			}
-		});
-		
-		MenuItem hideMoveArrowsItem = new MenuItem(viewMenu, SWT.NONE);
-		hideMoveArrowsItem.setText("Hide Move Arrows");
-		hideMoveArrowsItem.setEnabled(mainController.areMoveArrowsShown());
-		hideMoveArrowsItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			}).setEnabled(!mainController.areMoveArrowsShown())
+			.addItem("Hide Move Arrows").addSelectionListener(() -> {
 				mainController.hideMoveArrows();
 				createMenuBar(shell);
-			}
-		});
-		
-		MenuItem showEngineArrowsItem = new MenuItem(viewMenu, SWT.NONE);
-		showEngineArrowsItem.setText("Show Engine Arrows");
-		showEngineArrowsItem.setEnabled(!mainController.areEngineArrowsShown());
-		showEngineArrowsItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			}).setEnabled(mainController.areMoveArrowsShown())
+			.addItem("Show Engine Arrows").addSelectionListener(() -> {
 				mainController.showEngineArrows();
 				createMenuBar(shell);
-			}
-		});
-		
-		MenuItem hideEngineArrowsItem = new MenuItem(viewMenu, SWT.NONE);
-		hideEngineArrowsItem.setText("Hide Engine Arrows");
-		hideEngineArrowsItem.setEnabled(mainController.areEngineArrowsShown());
-		hideEngineArrowsItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
-				mainController.hideEngineArrows();
+			}).setEnabled(!mainController.areEngineArrowsShown())
+			.addItem("Hide Move Arrows").addSelectionListener(() -> {
+				mainController.hideMoveArrows();
 				createMenuBar(shell);
-			}
-		});
+			}).setEnabled(mainController.areEngineArrowsShown());
 		
-		MenuItem gameMenuItem = new MenuItem(menu, SWT.MENU);
-		gameMenuItem.setText("Game");
-		Menu gameMenu = new Menu(gameMenuItem);
-		gameMenuItem.setMenu(gameMenu);
-		
-		MenuItem editCommentMenuItem = new MenuItem(gameMenu, SWT.NONE);
-		editCommentMenuItem.setText("Edit Comment...");
-		editCommentMenuItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+		menuBuilder.addMenu("Game")
+			.addItem("Edit Comment...").addSelectionListener(() -> {
 				String comment = mainController.getCurrentMoveComment();
 				TextAreaDialog dialog = new TextAreaDialog(shell, "Comment", true);
 				dialog.setText(comment);
@@ -318,136 +242,69 @@ public class Main {
 					}
 					mainController.setCurrentMoveComment(comment);
 				}
-			}
-		});
-		
-		MenuItem deleteCommentMenuItem = new MenuItem(gameMenu, SWT.NONE);
-		deleteCommentMenuItem.setText("Delete Comment");
-		deleteCommentMenuItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addItem("Delete Comment").addSelectionListener(() -> {
 				mainController.setCurrentMoveComment(null);
-			}
-		});
-		
-		new MenuItem(gameMenu, SWT.SEPARATOR);
-		
-		MenuItem promoteVariationMenuItem = new MenuItem(gameMenu, SWT.NONE);
-		promoteVariationMenuItem.setText("Promote Variation");
-		promoteVariationMenuItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addSeparator()
+			.addItem("Promote Variation").addSelectionListener(() -> {
 				mainController.promoteVariation();
-			}
-		});
-		
-		MenuItem deleteVariationMenuItem = new MenuItem(gameMenu, SWT.NONE);
-		deleteVariationMenuItem.setText("Delete Variation");
-		deleteVariationMenuItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addItem("Delete Variation").addSelectionListener(() -> {
 				mainController.deleteVariation();
-			}
-		});
-		
-		MenuItem trimVariationMenuItem = new MenuItem(gameMenu, SWT.NONE);
-		trimVariationMenuItem.setText("Trim Variation");
-		trimVariationMenuItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addItem("Trim Variation").addSelectionListener(() -> {
 				mainController.trimVariation();
-			}
-		});
-		
-		new MenuItem(gameMenu, SWT.SEPARATOR);
-		
-		MenuItem editPositionItem = new MenuItem(gameMenu, SWT.NONE);
-		editPositionItem.setText("Edit Position");
-		editPositionItem.setEnabled(!mainController.isEditingPosition());
-		editPositionItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addSeparator()
+			.addItem("Edit Position").addSelectionListener(() -> {
 				mainController.editPosition();
 				createMenuBar(shell);
-			}
-		});
-		
-		MenuItem playPositionItem = new MenuItem(gameMenu, SWT.NONE);
-		playPositionItem.setText("Play Position");
-		playPositionItem.setEnabled(mainController.isEditingPosition());
-		playPositionItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			}).setEnabled(!mainController.isEditingPosition())
+			.addItem("Play Position").addSelectionListener(() -> {
 				mainController.playPosition();
 				createMenuBar(shell);
-			}
-		});
-		
-		MenuItem whiteToPlayItem = new MenuItem(gameMenu, SWT.NONE);
-		whiteToPlayItem.setText("Set White to Play");
-		whiteToPlayItem.setEnabled(mainController.getToPlay() == Side.BLACK);
-		whiteToPlayItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			}).setEnabled(mainController.isEditingPosition())
+			.addItem("Set White to Play").addSelectionListener(() -> {
 				mainController.setToPlay(Side.WHITE);
 				createMenuBar(shell);
-			}
-		});
-		
-		MenuItem blackToPlayItem = new MenuItem(gameMenu, SWT.NONE);
-		blackToPlayItem.setText("Set Black to Play");
-		blackToPlayItem.setEnabled(mainController.getToPlay() == Side.WHITE);
-		blackToPlayItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			}).setEnabled(mainController.getToPlay() == Side.BLACK)
+			.addItem("Set Black to Play").addSelectionListener(() -> {
 				mainController.setToPlay(Side.BLACK);
 				createMenuBar(shell);
-			}
-		});
-		
-		MenuItem clearItem = new MenuItem(gameMenu, SWT.NONE);
-		clearItem.setText("Clear Position");
-		clearItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			}).setEnabled(mainController.getToPlay() == Side.WHITE)
+			.addItem("Clear Position").addSelectionListener(() -> {
 				mainController.clearPosition();
-			}
-		});
-		
-		MenuItem engineMenuItem = new MenuItem(menu, SWT.MENU);
-		engineMenuItem.setText("Engine");
-		Menu engineMenu = new Menu(engineMenuItem);
-		engineMenuItem.setMenu(engineMenu);
-
-		MenuItem whiteMenuItem = new MenuItem(engineMenu, SWT.NONE);
-		whiteMenuItem.setText("Engine Play White (1 second)");
-		whiteMenuItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			});
+			
+		menuBuilder.addMenu("Engine")		
+			.addItem("Engine Play White (1 second)").addSelectionListener(() -> {
 				mainController.enginePlayWhite();
 				createMenuBar(shell);
-			}
-		});
-		
-		MenuItem blackMenuItem = new MenuItem(engineMenu, SWT.NONE);
-		blackMenuItem.setText("Engine Play Black (1 second)");
-		blackMenuItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addItem("Engine Play Black (1 second)").addSelectionListener(() -> {
 				mainController.enginePlayBlack();
 				createMenuBar(shell);
-			}
-		});
-		
-		MenuItem bothMenuItem = new MenuItem(engineMenu, SWT.NONE);
-		bothMenuItem.setText("Engine Play Both (1 second)");
-		bothMenuItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addItem("Engine Play Both (1 second)").addSelectionListener(() -> {
 				mainController.enginePlayBoth();
 				createMenuBar(shell);
-			}
-		});
-		
-		MenuItem stopEngineMenuItem = new MenuItem(engineMenu, SWT.NONE);
-		stopEngineMenuItem.setText("Stop Engine");
-		stopEngineMenuItem.setEnabled(mainController.isEnginePlaying());
-		stopEngineMenuItem.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
+			})
+			.addItem("Stop Engine").addSelectionListener(() -> {
 				mainController.enginePlayNone();
 				createMenuBar(shell);
-			}
-		});
+			}).setEnabled(mainController.isEnginePlaying());
 		
-		shell.setMenuBar(menu);
+		menuBuilder.build();
+	}
+	
+	private void runCommand() {
+		RunCommand runCommand = new RunCommand(shell);
+		runCommand.setSearchFunction(findText -> commandList.findCommands(findText));
+		String result = runCommand.open();
+		if(result != null) {
+			commandList.runCommand(result);
+		}
 	}
 	
 	private String selectPgnWithDialog() {
