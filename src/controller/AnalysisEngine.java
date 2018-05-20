@@ -1,15 +1,28 @@
 package controller;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ui.*;
-import ui.BoardCanvas.BoardArrow;
-import domain.*;
+import domain.Board;
+import domain.EngineMove;
+import domain.IllegalMoveException;
+import domain.Move;
+import domain.PromotionChoice;
+import domain.Side;
+import domain.Square;
 import domain.pieces.Piece;
 import domain.pieces.PieceType;
+import ui.BoardCanvas;
+import ui.BoardCanvas.BoardArrow;
+import ui.EngineMovesTable;
 
 public class AnalysisEngine {
 	private Process process;
@@ -21,6 +34,7 @@ public class AnalysisEngine {
 	private BoardCanvas boardCanvas;
 	
 	private Board currentPosition = new Board();
+	private boolean enabled = true;
 	
 	private EngineMove[] engineMoves = new EngineMove[10];
 	private Thread readThread;
@@ -45,6 +59,8 @@ public class AnalysisEngine {
 		updateViewLoop();
 		
 		init();
+		
+		engineView.addEnabledSelectedHandler(enabled -> setEnabled(enabled));
 	}
 	
 	public Move getBestMove() {
@@ -77,7 +93,21 @@ public class AnalysisEngine {
 		writer.println("ucinewgame");
 		writer.println("stop");
 		writer.println("position fen " + board.getFen());
-		writer.println("go infinite");
+		refreshEnabled();
+		writer.flush();
+	}
+	
+	public void setEnabled(boolean running) {
+		this.enabled = running;
+		refreshEnabled();
+	}
+	
+	public boolean isEnabled() {
+		return enabled;
+	}
+	
+	private void refreshEnabled() {
+		writer.println(enabled ? "go infinite" : "stop");
 		writer.flush();
 	}
 	

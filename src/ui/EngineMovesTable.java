@@ -2,25 +2,45 @@ package ui;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 
-import util.SwtUtil;
 import domain.EngineMove;
 import domain.Move;
+import util.SwtUtil;
 
 public class EngineMovesTable {
+	private Composite composite;
+	private Button enabledButton;
 	private Table table;
-	private List<EngineItemSelectedHandler> engineItemSelectedHandlers = new ArrayList<EngineItemSelectedHandler>();
+	private List<EngineItemSelectedHandler> engineItemSelectedHandlers = new ArrayList<>();
+	private List<Consumer<Boolean>> enabledSelectedHandlers = new ArrayList<>();
 	
 	private List<EngineMove> engineMoves = new ArrayList<EngineMove>();
 	private List<Move> playerMoves = new ArrayList<Move>();
 	
 	public EngineMovesTable(Composite parent) {
-		this.table = new Table(parent, SWT.BORDER);
+		this.composite = new Composite(parent, SWT.NONE);
+		composite.setLayout(new GridLayout(1, false));
+		
+		this.table = new Table(composite, SWT.BORDER);
+		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		
+		this.enabledButton = new Button(composite, SWT.CHECK);
+		enabledButton.setSelection(true);
+		enabledButton.setText("Enabled");
+		enabledButton.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		
 		TableColumn column1 = new TableColumn(table, SWT.NONE);
 		TableColumn column2 = new TableColumn(table, SWT.NONE);
@@ -30,9 +50,16 @@ public class EngineMovesTable {
 		
 		SwtUtil.keepEqualWidthColumns(table);
 		
+		enabledButton.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent event) {
+				enabledSelectedHandlers.forEach(handler -> handler.accept(enabledButton.getSelection()));
+			}
+		});
+		
 		table.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				EngineMove move = (EngineMove)event.item.getData();
+				
 				for(EngineItemSelectedHandler handler:engineItemSelectedHandlers) {
 					handler.onEngineItemSelected(move);
 				}
@@ -76,7 +103,11 @@ public class EngineMovesTable {
 		engineItemSelectedHandlers.add(handler);
 	}
 	
+	public void addEnabledSelectedHandler(Consumer<Boolean> handler) {
+		enabledSelectedHandlers.add(handler);
+	}
+	
 	public Composite getWidget() {
-		return table;
+		return composite;
 	}
 }
