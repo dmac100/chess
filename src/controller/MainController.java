@@ -75,7 +75,7 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		
 		this.enginePlayController = new EnginePlayController(this, analysisEngine);
 		
-		updateView();
+		updateView(false);
 	}
 
 	public void dispose() {
@@ -84,7 +84,7 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		}
 	}
 	
-	private void updateView() {
+	private void updateView(boolean madeMove) {
 		final Board board = history.getCurrentPosition();
 		
 		Display.getDefault().asyncExec(new Runnable() {
@@ -113,20 +113,22 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		
 		engineMovesTable.setPlayerMoves(history.getVarations());
 		
-		enginePlayController.madeMove();
+		if(madeMove) {
+			enginePlayController.madeMove();
+		}
 	}
 
 	@Override
 	public void onHistoryItemSelected(MoveHistoryNode selected) {
 		history.setPosition(selected);
-		updateView();
+		updateView(false);
 	}
 	
 	@Override
 	public void onPositionChanged(Board board) {
 		history.setInitialPosition(board);
 		setToPlay(editToPlay);
-		updateView();
+		updateView(false);
 	}
 	
 	@Override
@@ -140,7 +142,7 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 	
 	public void makeMove(Move move) throws IllegalMoveException {
 		history.makeMove(move);
-		updateView();
+		updateView(true);
 	}
 	
 	public void makeEngineMove() {
@@ -167,7 +169,7 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		try {
 			Board board = history.getCurrentPosition();
 			history.makeMove(move);
-			updateView();
+			updateView(false);
 		} catch (IllegalMoveException e) {
 			throw new RuntimeException("Illegal move in database", e);
 		}
@@ -186,7 +188,7 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		try {
 			PgnGame game = new PgnImporter().importPgn(pgnText);
 			history.setMoves(game.getInitialPosition(), game.getMoves());
-			updateView();
+			updateView(false);
 		} catch (ParseException e) {
 			throw new ControllerException("Error parsing pgn:\n" + e.getMessage(), e);
 		}
@@ -210,7 +212,7 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 			
 			createMoveDatabase(games);
 			
-			updateView();
+			updateView(false);
 		} catch(ParseException e) {
 			throw new ControllerException("Error loading file:\n" + e.getMessage(), e);
 		} catch (IOException e) {
@@ -228,27 +230,27 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 
 	public void prevMove() {
 		history.prev();
-		updateView();
+		updateView(false);
 	}
 	
 	public void nextMove() {
 		history.next();
-		updateView();
+		updateView(false);
 	}
 
 	public void firstMove() {
 		history.first();
-		updateView();
+		updateView(false);
 	}
 
 	public void lastMove() {
 		history.last();
-		updateView();
+		updateView(false);
 	}
 	
 	public void randomMove() {
 		history.nextRandom();
-		updateView();
+		updateView(false);
 	}
 
 	public void flipBoard() {
@@ -259,12 +261,12 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 	public void setFen(String fen) {
 		Board board = new Board(fen);
 		history.setInitialPosition(board);
-		updateView();
+		updateView(false);
 	}
 
 	public void newGame() {
 		history.setInitialPosition(new Board());
-		updateView();
+		updateView(false);
 	}
 
 	public String getPgn() throws IllegalMoveException {
@@ -303,12 +305,12 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 	
 	public void showMoveArrows() {
 		showMoveArrows = true;
-		updateView();
+		updateView(false);
 	}
 	
 	public void hideMoveArrows() {
 		showMoveArrows = false;
-		updateView();
+		updateView(false);
 	}
 	
 	public boolean areMoveArrowsShown() {
@@ -333,23 +335,23 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		
 		history.setInitialPosition(board);
 		
-		updateView();
+		updateView(false);
 	}
 
 	public void playPosition() {
 		editPosition = false;
-		updateView();
+		updateView(false);
 	}
 	
 	public void setToPlay(Side side) {
 		editToPlay = side;
 		history.setInitialPosition(getCurrentPosition().setSideToPlay(editToPlay));
-		updateView();
+		updateView(false);
 	}
 
 	public void clearPosition() {
 		history.setInitialPosition(new Board("k7/8/8/8/8/8/8/7K w KQkq - 0 1"));
-		updateView();
+		updateView(false);
 	}
 
 	public boolean areEngineArrowsShown() {
@@ -372,17 +374,17 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 
 	public void promoteVariation() {
 		history.promoteCurrentVariation();
-		updateView();
+		updateView(false);
 	}
 
 	public void deleteVariation() {
 		history.deleteCurrentVariation();
-		updateView();
+		updateView(false);
 	}
 	
 	public void setCurrentMoveComment(String comment) {
 		history.setCurrentMoveComment(comment);
-		updateView();
+		updateView(false);
 	}
 
 	public String getCurrentMoveComment() {
@@ -391,6 +393,6 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 
 	public void trimVariation() {
 		history.trimVariation();
-		updateView();
+		updateView(false);
 	}
 }
