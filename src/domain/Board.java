@@ -739,7 +739,9 @@ public class Board {
 			throw new IllegalArgumentException("Invalid piece type");
 		}
 		
-		board.pieces[square.getX()][square.getY()] = piece; 
+		board.pieces[square.getX()][square.getY()] = piece;
+		
+		board.castling = new Castling("");
 		
 		return board;
 	}
