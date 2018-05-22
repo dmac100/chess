@@ -53,6 +53,15 @@ public class Board {
 	}
 	
 	/**
+	 * Sets castling based on a partial FEN string, and returns the resulting position.
+	 */
+	public Board setCastling(String castling) {
+		Board board = new Board(this);
+		board.castling = new Castling(castling);
+		return board;
+	}
+	
+	/**
 	 * Makes a move on the board, returning the resulting board. Only checks for illegal moves
 	 * that haven't already been checked by getPossibleMoves(), for example leaving the King in check. 
 	 */
@@ -740,8 +749,6 @@ public class Board {
 		}
 		
 		board.pieces[square.getX()][square.getY()] = piece;
-		
-		board.castling = new Castling("");
 		
 		return board;
 	}

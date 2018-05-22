@@ -332,6 +332,7 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		board = board.setSideToPlay(editToPlay);
 		// TODO: No UI to edit castling and en-passant rights.
 		board = board.resetCounters();
+		board = board.setCastling("");
 		
 		history.setInitialPosition(board);
 		
