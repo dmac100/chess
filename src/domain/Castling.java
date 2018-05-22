@@ -32,7 +32,7 @@ public class Castling {
 		return allowed.isEmpty() ? "-" : StringUtils.join(allowed, "");
 	}
 	
-	public Castling nextCastling(Board board, Move move) {
+	public Castling nextCastling(Board board, Move move) throws IllegalMoveException {
 		Castling next = new Castling(this);
 		Square from = move.getFrom();
 		Square to = move.getTo();
@@ -136,27 +136,27 @@ public class Castling {
 	/**
 	 * Returns the file of the leftmost rook at row y on side.
 	 */
-	private static char getLeftmostRookFile(Board board, Side side, int y) {
+	private static char getLeftmostRookFile(Board board, Side side, int y) throws IllegalMoveException {
 		for(int x = 0; x < 8; x++) {
 			Piece piece = board.getPiece(new Square(x, y));
 			if(piece != null && piece.getPieceType() == PieceType.ROOK && piece.getSide() == side) {
 				return new Square(x, y).getFile();
 			}
 		}
-		throw new RuntimeException("No rook found");
+		throw new IllegalMoveException("No rook found");
 	}
 	
 	/**
 	 * Returns the file of the rightmost rook at row y on side.
 	 */
-	private static char getRightmostRookFile(Board board, Side side, int y) {
+	private static char getRightmostRookFile(Board board, Side side, int y) throws IllegalMoveException {
 		for(int x = 7; x >= 0; x--) {
 			Piece piece = board.getPiece(new Square(x, y));
 			if(piece != null && piece.getPieceType() == PieceType.ROOK && piece.getSide() == side) {
 				return new Square(x, y).getFile();
 			}
 		}
-		throw new RuntimeException("No rook found");
+		throw new IllegalMoveException("No rook found");
 	}
 
 	/**
