@@ -1,6 +1,9 @@
 package domain;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import pgn.PgnGame;
 import pgn.PgnImporter;
@@ -10,21 +13,46 @@ import util.FileUtil;
  * Classifies openings by ECO code.
  */
 public class EcoClassifier {
-	// List of games representing each opening. Initialized in background to improve startup time.
-	private volatile List<PgnGame> openings;
+	private Map<String, List<Move>> openings = new HashMap<>();
 
 	public EcoClassifier() {
-		Thread thread = new Thread(new Runnable() {
-			public void run() {
-				try {
-					String ecoPgn = FileUtil.readResource("/resource/eco.pgn");
-					openings = new PgnImporter().importCollection(ecoPgn);
-				} catch(Exception e) {
-					System.err.println("Error loading eco database: " + e);
+		try {
+			String[] lines = FileUtil.readResource("/resource/eco.parsed").split("\n");
+			int line = 0;
+			while(line < lines.length) {
+				String openingName = lines[line++];
+				int moves = Integer.parseInt(lines[line++]);
+				List<Move> moveList = new ArrayList<>();
+				for(int move = 0; move < moves; move++) {
+					String[] moveText = lines[line++].split(", ");
+					Square from = new Square(moveText[0]);
+					Square to = new Square(moveText[1]);
+					boolean castling = moveText[2].equals("true");
+					PromotionChoice promote = (moveText[3].equals("null")) ? null : PromotionChoice.valueOf(moveText[3]);
+					moveList.add(new Move(from, to, castling, promote));
 				}
+				openings.put(openingName, moveList);
+			}
+		} catch(Exception e) {
+			System.err.println("Error loading eco database: " + e);
+		}
+	}
+	
+	private void parsePgn() throws Exception {
+		String ecoPgn = FileUtil.readResource("/resource/eco.pgn");
+		List<PgnGame> openings = new PgnImporter().importCollection(ecoPgn);
+		
+		openings.forEach(pgnGame -> {
+			System.out.println(getOpeningName(pgnGame));
+			System.out.println(pgnGame.getMainLine().size());
+			for(Move move:pgnGame.getMainLine()) {
+				Square from = move.getFrom();
+				Square to = move.getTo();
+				boolean castling = move.getCastling();
+				PromotionChoice promote = move.getPromote();
+				System.out.println(from + ", " + to + ", " + castling + ", " + promote);
 			}
 		});
-		thread.start();
 	}
 	
 	/**
@@ -50,30 +78,27 @@ public class EcoClassifier {
 	public String classify(List<Move> game) {
 		if(openings == null) return "Unknown opening";
 		
-		PgnGame found = null;
+		List<Move> found = null;
+		String openingName = "Unknown opening";
 		
-		for(PgnGame opening:openings) {
-			if(match(game, opening)) {
-				if(found == null || opening.getMainLine().size() > found.getMainLine().size()) {
-					found = opening;
+		for(String name:openings.keySet()) {
+			List<Move> moves = openings.get(name);
+			if(match(game, moves)) {
+				if(found == null || moves.size() > found.size()) {
+					found = moves;
+					openingName = name;
 				}
 			}
 		}
 		
-		if(found == null) {
-			return "Unknown opening";
-		}
-		
-		return getOpeningName(found);
+		return openingName;
 	}
 
 	/**
 	 * Returns whether the opening is playing in the game.
 	 */
-	private boolean match(List<Move> game, PgnGame opening) {
+	private boolean match(List<Move> game, List<Move> openingMoves) {
 		if(openings == null) return false;
-		
-		List<Move> openingMoves = opening.getMainLine();
 		
 		if(openingMoves.size() > game.size()) {
 			return false;
