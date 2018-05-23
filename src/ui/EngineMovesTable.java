@@ -26,6 +26,7 @@ public class EngineMovesTable {
 	private Composite composite;
 	private EngineEvaluation engineEvaluation;
 	private Button enabledButton;
+	private Button showButton;
 	private Table table;
 	private List<EngineItemSelectedHandler> engineItemSelectedHandlers = new ArrayList<>();
 	private List<Consumer<Boolean>> enabledSelectedHandlers = new ArrayList<>();
@@ -45,10 +46,19 @@ public class EngineMovesTable {
 		this.table = new Table(composite, SWT.BORDER);
 		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		
-		this.enabledButton = new Button(composite, SWT.CHECK);
+		Composite checkComposite = new Composite(composite, SWT.NONE);
+		GridLayout checkCompositeGridLayout = new GridLayout(2, false);
+		checkCompositeGridLayout.marginHeight = 0;
+		checkComposite.setLayout(checkCompositeGridLayout);
+		checkComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
+		
+		this.enabledButton = new Button(checkComposite, SWT.CHECK);
 		enabledButton.setSelection(true);
 		enabledButton.setText("Enabled");
-		enabledButton.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
+		
+		this.showButton = new Button(checkComposite, SWT.CHECK);
+		showButton.setSelection(true);
+		showButton.setText("Show Moves");
 		
 		TableColumn column1 = new TableColumn(table, SWT.NONE);
 		TableColumn column2 = new TableColumn(table, SWT.NONE);
@@ -61,6 +71,12 @@ public class EngineMovesTable {
 		enabledButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				enabledSelectedHandlers.forEach(handler -> handler.accept(enabledButton.getSelection()));
+			}
+		});
+		
+		showButton.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent event) {
+				refreshTable();
 			}
 		});
 		
@@ -88,18 +104,20 @@ public class EngineMovesTable {
 	private void refreshTable() {
 		table.removeAll();
 		
-		for(EngineMove move:engineMoves) {
-			if(move == null) continue;
-			
-			TableItem item = new TableItem(table, SWT.NONE);
-			item.setText(0, move.getPgnMove());
-			item.setText(1, String.valueOf(move.getScore()));
-			
-			if(playerMoves.contains(move.getMove())) {
-				item.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLUE));
+		if(showButton.getSelection()) {
+			for(EngineMove move:engineMoves) {
+				if(move == null) continue;
+				
+				TableItem item = new TableItem(table, SWT.NONE);
+				item.setText(0, move.getPgnMove());
+				item.setText(1, String.valueOf(move.getScore()));
+				
+				if(playerMoves.contains(move.getMove())) {
+					item.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLUE));
+				}
+				
+				item.setData(move);
 			}
-			
-			item.setData(move);
 		}
 		
 		if(!engineMoves.isEmpty() && engineMoves.get(0) != null) {
