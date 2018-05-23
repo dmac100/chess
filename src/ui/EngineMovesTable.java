@@ -3,6 +3,8 @@ package ui;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -22,6 +24,7 @@ import util.SwtUtil;
 
 public class EngineMovesTable {
 	private Composite composite;
+	private EngineEvaluation engineEvaluation;
 	private Button enabledButton;
 	private Table table;
 	private List<EngineItemSelectedHandler> engineItemSelectedHandlers = new ArrayList<>();
@@ -33,6 +36,11 @@ public class EngineMovesTable {
 	public EngineMovesTable(Composite parent) {
 		this.composite = new Composite(parent, SWT.NONE);
 		composite.setLayout(new GridLayout(1, false));
+		
+		this.engineEvaluation = new EngineEvaluation(composite);
+		GridData engineEvaluationGridData = new GridData(SWT.FILL, SWT.NONE, true, false);
+		engineEvaluationGridData.heightHint = 12;
+		engineEvaluation.setLayoutData(engineEvaluationGridData);
 		
 		this.table = new Table(composite, SWT.BORDER);
 		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -68,7 +76,7 @@ public class EngineMovesTable {
 	}
 
 	public void setEngineMoves(List<EngineMove> engineMoves) {
-		this.engineMoves = engineMoves;
+		EngineMovesTable.this.engineMoves = engineMoves;
 		refreshTable();
 	}
 	
@@ -78,25 +86,45 @@ public class EngineMovesTable {
 	}
 	
 	private void refreshTable() {
-		table.getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				table.removeAll();
-				
-				for(EngineMove move:engineMoves) {
-					if(move == null) continue;
-					
-					TableItem item = new TableItem(table, SWT.NONE);
-					item.setText(0, move.getPgnMove());
-					item.setText(1, String.valueOf(move.getScore()));
-					
-					if(playerMoves.contains(move.getMove())) {
-						item.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLUE));
-					}
-					
-					item.setData(move);
-				}
+		table.removeAll();
+		
+		for(EngineMove move:engineMoves) {
+			if(move == null) continue;
+			
+			TableItem item = new TableItem(table, SWT.NONE);
+			item.setText(0, move.getPgnMove());
+			item.setText(1, String.valueOf(move.getScore()));
+			
+			if(playerMoves.contains(move.getMove())) {
+				item.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLUE));
 			}
-		});
+			
+			item.setData(move);
+		}
+		
+		if(!engineMoves.isEmpty() && engineMoves.get(0) != null) {
+			String bestScore = engineMoves.get(0).getScore();
+			
+			Matcher matcher;
+			
+			double score = 0;
+			
+			matcher = Pattern.compile("cp (-?\\d+)").matcher(bestScore);
+			if(matcher.find()) {
+				score = Integer.parseInt(matcher.group(1)) / 100.0;
+			}
+			
+			matcher = Pattern.compile("mate (-?\\d+)").matcher(bestScore);
+			if(matcher.find()) {
+				score = Integer.parseInt(matcher.group(1)) < 0 ? -50 : 50;
+			}
+			
+			if(bestScore.contains("Black")) {
+				score = -score;
+			}
+			
+			engineEvaluation.setScore(score);
+		}
 	}
 
 	public void addHistoryItemSelectedHandler(EngineItemSelectedHandler handler) {

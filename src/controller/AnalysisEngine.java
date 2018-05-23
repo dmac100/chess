@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.swt.widgets.Display;
+
 import domain.Board;
 import domain.EngineMove;
 import domain.IllegalMoveException;
@@ -272,7 +274,12 @@ public class AnalysisEngine {
 		this.updateViewThread = new Thread(new Runnable() {
 			public void run() {
 				while(true) {
-					displayEngineMoves();
+					Display.getDefault().asyncExec(new Runnable() {
+						public void run() {
+							displayEngineMoves();
+						}
+					});
+					
 					try {
 						Thread.sleep(300);
 					} catch (InterruptedException e) {
