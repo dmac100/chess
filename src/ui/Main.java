@@ -105,13 +105,6 @@ public class Main {
 	private void createSidePanels(Composite parent) {
 		CTabFolder tabFolder = new CTabFolder(parent, SWT.NONE);
 		
-		/*
-		CTabItem historyItem = new CTabItem(tabFolder, SWT.NONE);
-		historyItem.setText("Moves");
-		this.moveHistory = new MoveHistoryTable(tabFolder);
-		historyItem.setControl(moveHistory.getWidget());
-		*/
-		
 		CTabItem moveTreeItem = new CTabItem(tabFolder, SWT.NONE);
 		moveTreeItem.setText("Moves");
 		this.moveHistoryTree = new MoveHistoryTree(tabFolder);
