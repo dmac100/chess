@@ -351,7 +351,7 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 	}
 
 	public void clearPosition() {
-		history.setInitialPosition(new Board("k7/8/8/8/8/8/8/7K w KQkq - 0 1"));
+		history.setInitialPosition(new Board("k7/8/8/8/8/8/8/7K w - - 0 1"));
 		updateView(false);
 	}
 
