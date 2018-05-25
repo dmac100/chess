@@ -1,5 +1,6 @@
 package domain;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,11 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pgn.PgnGame;
+import util.FileUtil;
 
 /**
  * A move database storing the win/draw/loss counts for the moves played at each position.
  */
 public class MoveDatabase {
+	public MoveDatabase() {
+		clearDatabase();
+		createTables();
+	}
+	
 	public Connection getConnection() {
 		try {
 			Class.forName("org.hsqldb.jdbcDriver");
@@ -24,8 +31,36 @@ public class MoveDatabase {
 		}
 	}
 	
-	public MoveDatabase() {
-		createTables();
+	private void clearDatabase() {
+		try(Connection connection = getConnection()) {
+			connection.createStatement().execute("drop schema public cascade");
+		} catch(SQLException e) {
+			throw new RuntimeException("Error clearing database", e);
+		}
+	}
+
+	public void saveDatabase(File file) {
+		if(file.exists()) {
+			file.delete();
+		}
+		try(Connection connection = getConnection()) {
+			connection.createStatement().execute("script '" + file.getAbsolutePath() + "'");
+		} catch(SQLException e) {
+			throw new RuntimeException("Error saving database", e);
+		}
+	}
+	
+	public void importDatabase(File file) {
+		clearDatabase();
+		try(Connection connection = getConnection()) {
+			for(String line:FileUtil.readFile(file.getAbsolutePath()).split("\n")) {
+				if((line.startsWith("INSERT") && !line.startsWith("INSERT INTO BLOCKS")) || line.startsWith("CREATE MEMORY TABLE")) {
+					connection.createStatement().execute(line.replaceAll("\\\\u000a", "\n"));
+				}
+			}
+		} catch(Exception e) {
+			throw new RuntimeException("Error importing database", e);
+		}
 	}
 	
 	private void createTables() {

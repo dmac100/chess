@@ -1,5 +1,6 @@
 package controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -206,11 +207,16 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 
 	public void importDatabase(String path) throws ControllerException {
 		try {
-			String pgnText = FileUtil.readFile(path);
+			this.moveDatabase = new MoveDatabase();
+			if(path.endsWith(".pgn")) {
+				String pgnText = FileUtil.readFile(path);
+				List<PgnGame> games = new PgnImporter().importCollection(pgnText);
 			
-			List<PgnGame> games = new PgnImporter().importCollection(pgnText);
-			
-			createMoveDatabase(games);
+				moveDatabase.importPgnGames(games);
+				System.out.printf("Imported %d games.", games.size());
+			} else {
+				moveDatabase.importDatabase(new File(path));
+			}
 			
 			updateView(false);
 		} catch(ParseException e) {
@@ -220,14 +226,14 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		}
 	}
 	
-	private void createMoveDatabase(List<PgnGame> games) {
-		this.moveDatabase = new MoveDatabase();
-		
-		moveDatabase.importPgnGames(games);
-		
-		System.out.printf("Imported %d games.", games.size());
+	public void exportDatabase(String selected) {
+		moveDatabase.saveDatabase(new File(selected));
 	}
-
+	
+	public boolean moveDatabaseLoaded() {
+		return (moveDatabase != null);
+	}
+	
 	public void prevMove() {
 		history.prev();
 		updateView(false);

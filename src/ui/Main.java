@@ -129,7 +129,7 @@ public class Main {
 		menuBuilder.addMenu("File")
 			.addItem("New Game").addSelectionListener(() -> mainController.newGame())
 			.addItem("Open...").addSelectionListener(() -> {
-				String selected = selectPgnWithDialog();
+				String selected = selectOpenLocationWithDialog("*.pgn", "*.*");
 				if(selected != null) {
 					try {
 						mainController.openFile(selected);
@@ -138,8 +138,9 @@ public class Main {
 					}
 				}
 			})
+			.addSeparator()
 			.addItem("Import Database...").addSelectionListener(() -> {
-				String selected = selectPgnWithDialog();
+				String selected = selectOpenLocationWithDialog("*.pgn", "*.db", "*.*");
 				if(selected != null) {
 					try {
 						mainController.importDatabase(selected);
@@ -148,6 +149,16 @@ public class Main {
 					}
 				}
 			})
+			.addItem("Export Database...").addSelectionListener(() -> {
+				String selected = selectSaveLocationWithDialog("game", "*.db");
+				if(selected != null) {
+					try {
+						mainController.exportDatabase(selected);
+					} catch(Exception e) {
+						displayException(e);
+					}
+				}
+			}).setEnabled(mainController.moveDatabaseLoaded())
 			.addSeparator()
 			.addItem("Enter FEN...").addSelectionListener(() -> {
 				String fen = selectFenWithDialog();
@@ -187,7 +198,7 @@ public class Main {
 				}
 			})
 			.addItem("Save PGN...").addSelectionListener(() -> {
-				String selected = selectSaveLocationWithDialog();
+				String selected = selectSaveLocationWithDialog("game.pgn", "*.pgn");
 				if(selected != null) {
 					try {
 						mainController.savePgn(selected);
@@ -300,18 +311,19 @@ public class Main {
 		}
 	}
 	
-	private String selectPgnWithDialog() {
+	private String selectOpenLocationWithDialog(String... extensions) {
 		FileDialog dialog = new FileDialog(shell, SWT.OPEN);
 		dialog.setText("Open");
-		dialog.setFilterExtensions(new String[] { "*.pgn", "*.*" });
+		dialog.setFilterExtensions(extensions);
 		
 		return dialog.open();
 	}
 	
-	private String selectSaveLocationWithDialog() {
+	private String selectSaveLocationWithDialog(String defaultName, String... extensions) {
 		FileDialog dialog = new FileDialog(shell, SWT.SAVE);
 		dialog.setText("Save");
-		dialog.setFileName("game.pgn");
+		dialog.setFilterExtensions(extensions);
+		dialog.setFileName(defaultName);
 		
 		return dialog.open();
 	}
