@@ -73,27 +73,14 @@ public class Main {
 		
 		form.setWeights(new int[] { 75, 25 } );
 		
-		System.out.println("Creating main controller...");
-		
 		this.mainController = new MainController(boardCanvas, moveHistoryTree, databaseView, engineView);
 		
 		System.out.println("Done");
 		
 		createMenuBar(shell);
 		
-		/*
-		try {
-			mainController.openFile("/home/david/incoming/testgame.pgn");
-			//mainController.importDatabase("/home/david/incoming/games.pgn");
-			//mainController.importDatabase("/home/david/output-black.pgn");
-		} catch (ControllerException e) {
-			e.printStackTrace();
-		}
-		*/
-		
 		shell.addListener(SWT.KeyUp, new KeyListener());
 		boardCanvas.getWidget().addListener(SWT.KeyUp, new KeyListener());
-		//moveHistory.getWidget().addListener(SWT.KeyUp, new KeyListener());
 		moveHistoryTree.getWidget().addListener(SWT.KeyUp, new KeyListener());
 		for(Widget widget:databaseView.getWidgets()) {
 			widget.addListener(SWT.KeyUp, new KeyListener());
@@ -446,11 +433,7 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
-		System.out.println("Creating display...");
-		
 		Display display = new Display();
-		
-		System.out.println("Creating shell...");
 		
 		Shell shell = new Shell(display);
 		
@@ -458,12 +441,8 @@ public class Main {
 		shell.setSize(850, 650);
 		shell.setText("Chess");
 		shell.setVisible(true);
-		
-		System.out.println("Parsing args...");
 
 		main.parseArgs(args);
-		
-		System.out.println("Running event loop...");
 		
 		while(!shell.isDisposed()) {
 			if(!display.readAndDispatch()) {
