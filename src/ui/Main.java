@@ -214,8 +214,8 @@ public class Main {
 				mainController.showEngineArrows();
 				createMenuBar(shell);
 			}).setEnabled(!mainController.areEngineArrowsShown())
-			.addItem("Hide Move Arrows").addSelectionListener(() -> {
-				mainController.hideMoveArrows();
+			.addItem("Hide Engine Arrows").addSelectionListener(() -> {
+				mainController.hideEngineArrows();
 				createMenuBar(shell);
 			}).setEnabled(mainController.areEngineArrowsShown());
 		
