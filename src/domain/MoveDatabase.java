@@ -54,7 +54,7 @@ public class MoveDatabase {
 		clearDatabase();
 		try(Connection connection = getConnection()) {
 			for(String line:FileUtil.readFile(file.getAbsolutePath()).split("\n")) {
-				if((line.startsWith("INSERT") && !line.startsWith("INSERT INTO BLOCKS")) || line.startsWith("CREATE MEMORY TABLE")) {
+				if((line.startsWith("INSERT") && !line.startsWith("INSERT INTO BLOCKS")) || line.startsWith("CREATE MEMORY TABLE") || line.startsWith("CREATE INDEX")) {
 					connection.createStatement().execute(line.replaceAll("\\\\u000a", "\n"));
 				}
 			}
