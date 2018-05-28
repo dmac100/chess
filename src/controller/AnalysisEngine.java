@@ -32,6 +32,7 @@ public class AnalysisEngine {
 	private BufferedReader errReader;
 	private PrintWriter writer;
 
+	private String exePath;
 	private EngineMovesTable engineView;
 	private BoardCanvas boardCanvas;
 	
@@ -46,23 +47,38 @@ public class AnalysisEngine {
 	private boolean showArrows = false;
 	
 	public AnalysisEngine(String exePath, EngineMovesTable engineView, BoardCanvas boardCanvas) throws IOException {
+		this.exePath = exePath;
 		this.engineView = engineView;
 		this.boardCanvas = boardCanvas;
 		
-		ProcessBuilder processBuilder = new ProcessBuilder(exePath);
-		
-		this.process = processBuilder.start();
-		this.reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-		this.errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-		this.writer = new PrintWriter(new OutputStreamWriter(process.getOutputStream()));
-		
-		readLoop();
-		readErrLoop();
-		updateViewLoop();
-		
-		init();
-		
 		engineView.addEnabledSelectedHandler(enabled -> setEnabled(enabled));
+		
+		startEngine();
+	}
+	
+	private synchronized void startEngine() throws IOException {
+		if(process == null) {
+			ProcessBuilder processBuilder = new ProcessBuilder(exePath);
+			
+			this.process = processBuilder.start();
+			this.reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			this.errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+			this.writer = new PrintWriter(new OutputStreamWriter(process.getOutputStream()));
+			
+			readLoop();
+			readErrLoop();
+			updateViewLoop();
+		}
+	}
+	
+	private synchronized void exitEngine() {
+		if(process != null) {
+			readThread.interrupt();
+			readErrThread.interrupt();
+			updateViewThread.interrupt();
+			process.destroy();
+			process = null;
+		}
 	}
 	
 	public Move getBestMove() {
@@ -75,42 +91,46 @@ public class AnalysisEngine {
 		return engineMoves;
 	}
 	
-	private void init() {
-		writer.println("uci");
-		writer.println("setoption name MultiPV value 10");
-		writer.println("isready");
-		writer.println("ucinewgame");
-		writer.flush();
-	}
-	
 	public void setPosition(Board board) {
 		if(currentPosition == board) return;
-		this.currentPosition = board;
 		
 		// Ignore invalid positions because the engine can't handle them.
 		if(!board.validPosition()) return;
 		
+		try {
+			if(process == null) {
+				startEngine();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
+		
+		this.currentPosition = board;
+		
 		engineMoves = new EngineMove[10];
 		
+		syncEngine();
+	}
+	
+	private void syncEngine() {
+		writer.println("uci");
+		writer.println("setoption name MultiPV value 10");
+		writer.println("isready");
 		writer.println("ucinewgame");
 		writer.println("stop");
-		writer.println("position fen " + board.getFen());
-		refreshEnabled();
+		writer.println("position fen " + currentPosition.getFen());
+		writer.println(enabled ? "go infinite" : "stop");
 		writer.flush();
 	}
 	
 	public void setEnabled(boolean running) {
 		this.enabled = running;
-		refreshEnabled();
+		syncEngine();
 	}
 	
 	public boolean isEnabled() {
 		return enabled;
-	}
-	
-	private void refreshEnabled() {
-		writer.println(enabled ? "go infinite" : "stop");
-		writer.flush();
 	}
 	
 	private void handleEngineOutput(String line) {
@@ -227,7 +247,7 @@ public class AnalysisEngine {
 						
 						if(line == null) {
 							System.err.println("Engine input stream closed");
-							dispose();
+							exitEngine();
 							return;
 						}
 						
@@ -235,7 +255,7 @@ public class AnalysisEngine {
 					}
 				} catch(IOException e) {
 					e.printStackTrace();
-					dispose();
+					exitEngine();
 				}
 			}
 		});
@@ -253,7 +273,7 @@ public class AnalysisEngine {
 						
 						if(line == null) {
 							System.err.println("Engine error stream closed");
-							dispose();
+							exitEngine();
 							return;
 						}
 						
@@ -261,7 +281,7 @@ public class AnalysisEngine {
 					}
 				} catch(IOException e) {
 					e.printStackTrace();
-					dispose();
+					exitEngine();
 				}
 			}
 		});
@@ -294,10 +314,7 @@ public class AnalysisEngine {
 	}
 	
 	public void dispose() {
-		readThread.interrupt();
-		readErrThread.interrupt();
-		updateViewThread.interrupt();
-		process.destroy();
+		exitEngine();
 	}
 
 	public void showArrows() {
