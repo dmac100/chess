@@ -1,6 +1,13 @@
 package domain;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -9,6 +16,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import pgn.PgnGame;
 import util.FileUtil;
@@ -40,22 +49,56 @@ public class MoveDatabase {
 	}
 
 	public void saveDatabase(File file) {
-		if(file.exists()) {
-			file.delete();
-		}
-		try(Connection connection = getConnection()) {
-			connection.createStatement().execute("script '" + file.getAbsolutePath() + "'");
-		} catch(SQLException e) {
+		try(Writer writer = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(file)), StandardCharsets.UTF_8)) {
+			try(Connection connection = getConnection()) {
+				try(ResultSet resultSet = connection.createStatement().executeQuery("select * from Game")) {
+					while(resultSet.next()) {
+						writer.append(String.format("insert into Game values ( %s, '%s' );\n",
+							resultSet.getObject(1),
+							resultSet.getString(2).replace("'", "''").replace("\n", "\\u000a")
+						));
+					}
+				}
+				
+				try(ResultSet resultSet = connection.createStatement().executeQuery("select * from PositionGame")) {
+					while(resultSet.next()) {
+						writer.append(String.format("insert into PositionGame values ( %s, '%s', %s );\n",
+							resultSet.getObject(1),
+							resultSet.getString(2).replace("'", "''"),
+							resultSet.getObject(3)
+						));
+					}
+				}
+				
+				try(ResultSet resultSet = connection.createStatement().executeQuery("select * from PositionMove")) {
+					while(resultSet.next()) {
+						writer.append(String.format("insert into PositionMove values ( %s, '%s', '%s', '%s', %s, '%s', %s, %s, %s );\n",
+							resultSet.getObject(1),
+							resultSet.getString(2).replace("'", "''").replace("\n", "\\u000a"),
+							resultSet.getString(3).replace("'", "''").replace("\n", "\\u000a"),
+							resultSet.getString(4).replace("'", "''").replace("\n", "\\u000a"),
+							resultSet.getObject(5),
+							resultSet.getString(6).replace("'", "''").replace("\n", "\\u000a"),
+							resultSet.getObject(7),
+							resultSet.getObject(8),
+							resultSet.getObject(9)
+						));
+					}
+				}
+			}
+		} catch(Exception e) {
 			throw new RuntimeException("Error saving database", e);
 		}
 	}
 	
 	public void importDatabase(File file) {
 		clearDatabase();
+		createTables();
 		try(Connection connection = getConnection()) {
-			for(String line:FileUtil.readFile(file.getAbsolutePath()).split("\n")) {
-				if((line.startsWith("INSERT") && !line.startsWith("INSERT INTO BLOCKS")) || line.startsWith("CREATE MEMORY TABLE") || line.startsWith("CREATE INDEX")) {
-					connection.createStatement().execute(line.replaceAll("\\\\u000a", "\n"));
+			try(BufferedReader reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(file))))) {
+				String line;
+				while((line = reader.readLine()) != null) {
+					connection.createStatement().execute(line.replace("\\u000a", "\n"));
 				}
 			}
 		} catch(Exception e) {
