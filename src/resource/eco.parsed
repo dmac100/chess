@@ -7900,7 +7900,7 @@ e7, f6, false, null
 e4, e5, false, null
 f6, e7, false, null
 d1, g4, false, null
-C13 French (Classical, Vistaneckis (Nimzoö)ððð variation)
+C13 French (Classical, Vistaneckis (Nimzovich) variation)
 10
 e2, e4, false, null
 e7, e6, false, null
@@ -8563,7 +8563,7 @@ d1, d4, false, null
 b8, c6, false, null
 d4, e3, false, null
 g8, f6, false, null
-C22 Centre game (Kuprå)ðððk variation)
+C22 Centre game (Kupreichik variation)
 17
 e2, e4, false, null
 e7, e5, false, null
@@ -10974,7 +10974,7 @@ d2, d4, false, null
 e5, d4, false, null
 f3, d4, false, null
 g7, g6, false, null
-C41 Philidor (Nimzovich (Jaené3ððð variation)
+C41 Philidor (Nimzovich (Jaenisch variation))
 6
 e2, e4, false, null
 e7, e5, false, null
@@ -15638,7 +15638,7 @@ f1, b5, false, null
 a7, a6, false, null
 b5, a4, false, null
 g8, f6, false, null
-C77 Ruy Lopez (Four knights (Tarrá3ððð variation)
+C77 Ruy Lopez (Four knights (Tarrasch variation))
 9
 e2, e4, false, null
 e7, e5, false, null

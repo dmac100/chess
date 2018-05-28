@@ -4503,7 +4503,7 @@ Qg4 g6
 
 [ECO "C13"]
 [Opening "French"]
-[Variation "Classical, Vistaneckis (Nimzoö)ððð variation"]
+[Variation "Classical, Vistaneckis (Nimzovich) variation)"]
 
 1. e4 e6 2. d4 d5 3. Nc3 Nf6 4. Bg5 Be7 5. e5 Ng8
 
@@ -4847,7 +4847,7 @@ Qxg7 Rg8 9. Qxh7 cxd4 10. Ne2
 
 [ECO "C22"]
 [Opening "Centre game"]
-[Variation "Kuprå)ðððk variation"]
+[Variation "Kupreichik variation"]
 
 1. e4 e5 2. d4 exd4 3. Qxd4 Nc6 4. Qe3 Nf6 5. Nc3 Bb4 6. Bd2 O-O 7. O-O-O
 Re8 8. Bc4 d6 9. Nh3
@@ -6176,7 +6176,7 @@ Nf6
 
 [ECO "C41"]
 [Opening "Philidor"]
-[Variation "Nimzovich (Jaené3ððð variation"]
+[Variation "Nimzovich (Jaenisch variation)"]
 
 1. e4 e5 2. Nf3 d6 3. d4 Nf6
 
@@ -8281,7 +8281,7 @@ Bd7
 
 [ECO "C77"]
 [Opening "Ruy Lopez"]
-[Variation "Four knights (Tarrá3ððð variation"]
+[Variation "Four knights (Tarrasch variation"]
 
 1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. Nc3
 
