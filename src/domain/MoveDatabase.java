@@ -329,8 +329,8 @@ public class MoveDatabase {
 					}
 					
 					int gameId = addGame(game.getPgn());
-						
-					Board board = new Board();
+					
+					Board board = game.getInitialPosition();
 					for(Move move:game.getMainLine()) {
 						moves++;
 						
