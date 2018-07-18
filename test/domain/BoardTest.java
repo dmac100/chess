@@ -459,4 +459,11 @@ public class BoardTest {
 		board = board.makePgnMove("Rgg2");
 		assertEquals("k7/8/8/8/8/8/6R1/4K2R b - - 1 0", board.getFen());
 	}
+	
+	@Test
+	public void nullMove() throws IllegalMoveException {
+		Board board = new Board();
+		board = board.makeMove(Move.nullMove());
+		assertEquals("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1", board.getFen());
+	}
 }

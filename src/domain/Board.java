@@ -68,6 +68,18 @@ public class Board {
 	public Board makeMove(Move move) throws IllegalMoveException {
 		Board next = new Board(this);
 		
+		if(move.isNullMove()) {
+			next.toPlay = next.toPlay.otherSide();
+			if(next.toPlay == Side.WHITE) {
+				next.fullMoves++;
+			}
+			next.enPassant = null;
+			if(next.isCheck(this.toPlay)) {
+				throw new IllegalMoveException("King is in check.");
+			}
+			return next;
+		}
+		
 		Piece piece = getMovingPiece(move);
 		Square from = move.getFrom();
 		Square to = move.getTo();
@@ -267,6 +279,10 @@ public class Board {
 	 * Return a move from this position as a pgn move (algebraic notation). 
 	 */
 	public String getMoveAsPgn(Move move) throws IllegalMoveException {
+		if(move.isNullMove()) {
+			return "-";
+		}
+		
 		Square from = move.getFrom();
 		Square to = move.getTo();
 		Piece piece = getPiece(from);
@@ -546,6 +562,8 @@ public class Board {
 	 * draws. These are checked by the makeMove method.
 	 */
 	public boolean isPossibleMove(Move move) {
+		if(move.isNullMove()) return true;
+		
 		for(Move m:getPossibleMoves()) {
 			if(m.equals(move)) return true;
 		}

@@ -10,7 +10,14 @@ public final class Move {
 	private Square to;
 	private PromotionChoice promote;
 	private boolean castling;
-
+	private boolean nullMove;
+	
+	public Move() {
+		nullMove = true;
+		from = new Square(0, 0);
+		to = new Square(0, 0);
+	}
+	
 	public Move(Square from, Square to) {
 		this(from, to, false, null);
 	}
@@ -38,6 +45,14 @@ public final class Move {
 	public Move(String from, String to, PromotionChoice promote) {
 		this(from, to);
 		this.promote = promote;
+	}
+	
+	public static Move nullMove() {
+		return new Move();
+	}
+	
+	public boolean isNullMove() {
+		return nullMove;
 	}
 
 	public Square getFrom() {

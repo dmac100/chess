@@ -141,6 +141,15 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		}
 	}
 	
+	public void insertNullMove() {
+		try {
+			history.makeMove(Move.nullMove());
+			updateView(true);
+		} catch (IllegalMoveException e) {
+			// Don't make move.
+		}
+	}
+	
 	public void makeMove(Move move) throws IllegalMoveException {
 		history.makeMove(move);
 		updateView(true);

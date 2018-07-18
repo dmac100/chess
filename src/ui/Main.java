@@ -264,6 +264,9 @@ public class Main {
 				mainController.setToPlay(Side.BLACK);
 				createMenuBar(shell);
 			}).setEnabled(mainController.getToPlay() == Side.WHITE)
+			.addItem("Insert Null Move").addSelectionListener(() -> {
+				mainController.insertNullMove();
+			})
 			.addItem("Clear Position").addSelectionListener(() -> {
 				mainController.clearPosition();
 			});
