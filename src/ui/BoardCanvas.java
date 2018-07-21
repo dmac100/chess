@@ -314,10 +314,10 @@ public class BoardCanvas {
 	}
 	
 	private void paint(GC gc) {
-		//Color black = colorManager.getHexColor("d18b47");
-		//Color white = colorManager.getHexColor("ffcc9e");
-		Color black = colorManager.getHexColor("749454");
-		Color white = colorManager.getHexColor("f0f0d4");
+		Color black = colorManager.getHexColor("b58863");
+		Color white = colorManager.getHexColor("f0d9b5");
+		//Color black = colorManager.getHexColor("749454");
+		//Color white = colorManager.getHexColor("f0f0d4");
 		
 		Rectangle area = canvas.getClientArea();
 		
