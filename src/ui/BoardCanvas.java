@@ -76,11 +76,15 @@ public class BoardCanvas {
 		 * Return the square of the board that the mouse is over, or null if it is not over a square.
 		 */
 		private Square getSquareFromEvent(MouseEvent event) {
-			double width = canvas.getClientArea().width - (editPosition ? 32 : 0);
-			double height = canvas.getClientArea().height;
+			Rectangle area = canvas.getClientArea();
+			int horizontalMargin = Math.max((area.width - area.height) / 2, 0);
+			int verticalMargin = Math.max((area.height - area.width) / 2, 0);
 			
-			int x = (int)((event.x / width) * 8);
-			int y = (int)((event.y / height) * 8);
+			double width = canvas.getClientArea().width - (editPosition ? 32 : 0) - horizontalMargin * 2;
+			double height = canvas.getClientArea().height - verticalMargin * 2;
+			
+			int x = (int)(((event.x - horizontalMargin) / width) * 8);
+			int y = (int)(((event.y - verticalMargin) / height) * 8);
 			
 			if(!Square.inBounds(x, y)) {
 				return null;
@@ -93,20 +97,24 @@ public class BoardCanvas {
 		}
 
 		public void mouseDown(MouseEvent event) {
+			Rectangle area = canvas.getClientArea();
+			int horizontalMargin = Math.max((area.width - area.height) / 2, 0);
+			int verticalMargin = Math.max((area.height - area.width) / 2, 0);
+			
 			// Save starting square
 			draggedFrom = getSquareFromEvent(event);
 			
-			double width = canvas.getClientArea().width - (editPosition ? 32 : 0);
-			double height = canvas.getClientArea().height;
+			double width = canvas.getClientArea().width - (editPosition ? 32 : 0) - horizontalMargin * 2;
+			double height = canvas.getClientArea().height - verticalMargin * 2;
 			
 			// Save offset of mouse from top-left of the square.
-			draggedOffsetX = floatMod(event.x, width / 8.0);
-			draggedOffsetY = floatMod(event.y, height / 8.0);
+			draggedOffsetX = floatMod(event.x - horizontalMargin, width / 8.0);
+			draggedOffsetY = floatMod(event.y - verticalMargin, height / 8.0);
 			
-			draggedX = event.x;
-			draggedY = event.y;
+			draggedX = event.x - horizontalMargin;
+			draggedY = event.y - verticalMargin;
 			
-			if(editPosition && event.x > width - 32) {
+			if(editPosition && event.x > width + horizontalMargin * 2) {
 				int y = 0;
 				
 				for(Side side:Side.values()) {
@@ -137,10 +145,14 @@ public class BoardCanvas {
 		}
 
 		public void mouseMove(MouseEvent event) {
+			Rectangle area = canvas.getClientArea();
+			int horizontalMargin = Math.max((area.width - area.height) / 2, 0);
+			int verticalMargin = Math.max((area.height - area.width) / 2, 0);
+			
 			if(draggedFrom != null || editDraggedPiece != null) {
 				// Update piece position and redraw.
-				draggedX = event.x;
-				draggedY = event.y;
+				draggedX = event.x - horizontalMargin;
+				draggedY = event.y - verticalMargin;
 				redraw();
 			}
 		}
@@ -307,27 +319,22 @@ public class BoardCanvas {
 		Color black = colorManager.getHexColor("749454");
 		Color white = colorManager.getHexColor("f0f0d4");
 		
-		double w = (canvas.getClientArea().width - (editPosition ? 32 : 0)) / 8.0;
-		double h = canvas.getClientArea().height / 8.0;
+		Rectangle area = canvas.getClientArea();
+		
+		int horizontalMargin = Math.max((area.width - area.height) / 2, 0);
+		int verticalMargin = Math.max((area.height - area.width) / 2, 0);
+		
+		double w = (area.width - (editPosition ? 32 : 0) - horizontalMargin * 2) / 8.0;
+		double h = (area.height - verticalMargin * 2) / 8.0;
 		
 		int size = (int)Math.min(w, h);
 		if(size % 2 == 1) size -= 1;
 		
-		gc.setBackground(black);
-		
-		// Draw square backgrounds.
-		for(int x = 0; x < 8; x++) {
-			for(int y = 0; y < 8; y++) {
-				gc.setBackground((x%2 == y%2) ? white : black);
-				gc.fillRectangle((int)(x*w), (int)(y*h), (int)(x*w+w), (int)(y*h+h));
-			}
-		}
-		
 		if(editPosition) {
 			// Draw edit toolbar.
-			int marginStart = canvas.getClientArea().width - 32;
+			int marginStart = area.width - 32;
 			gc.setBackground(colorManager.getHexColor("777777"));
-			gc.fillRectangle(marginStart, 0, canvas.getClientArea().width, canvas.getClientArea().height);
+			gc.fillRectangle(marginStart, 0, area.width, area.height);
 			int y = 0;
 			for(Side side:Side.values()) {
 				for(PieceType type:PieceType.values()) {
@@ -335,6 +342,19 @@ public class BoardCanvas {
 					gc.drawImage(image, marginStart, y);
 					y += 32;
 				}
+			}
+		}
+		
+		Transform transform = new Transform(gc.getDevice());
+		transform.translate(horizontalMargin, verticalMargin);
+		gc.setTransform(transform);
+		transform.dispose();
+		
+		// Draw square backgrounds.
+		for(int x = 0; x < 8; x++) {
+			for(int y = 0; y < 8; y++) {
+				gc.setBackground((x%2 == y%2) ? white : black);
+				gc.fillRectangle((int)(x*w), (int)(y*h), (int)(w+1), (int)(h+1));
 			}
 		}
 		
