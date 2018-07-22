@@ -21,7 +21,7 @@ class PromotionDialog extends Dialog {
 	
 	public PromotionChoice open() {
 		Shell parent = getParent();
-		final Shell shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		final Shell shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.SHEET);
 		shell.setText("Promote");
 		shell.setLayout(new GridLayout());
 		
@@ -48,7 +48,9 @@ class PromotionDialog extends Dialog {
 		for(final String piece:new String[] { "Knight", "Bishop", "Rook", "Queen" }) {
 			Button button = new Button(buttonComposite, SWT.NONE);
 			button.setText(piece);
-			button.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
+			GridData gridData = new GridData(SWT.FILL, SWT.NONE, true, false);
+			gridData.heightHint = 64;
+			button.setLayoutData(gridData);
 			
 			button.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
@@ -59,7 +61,7 @@ class PromotionDialog extends Dialog {
 		}
 		
 		// Open and wait for result.
-		shell.setSize(300, 100);
+		shell.setSize(300, 140);
 		
 		shell.open();
 		Display display = parent.getDisplay();
