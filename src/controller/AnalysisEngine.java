@@ -120,7 +120,7 @@ public class AnalysisEngine {
 		writer.println("ucinewgame");
 		writer.println("stop");
 		writer.println("position fen " + currentPosition.getFen());
-		writer.println(enabled ? "go infinite" : "stop");
+		writer.println(enabled ? "go movetime 60000" : "stop");
 		writer.flush();
 	}
 	
