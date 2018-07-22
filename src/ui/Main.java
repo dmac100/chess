@@ -92,18 +92,20 @@ public class Main {
 	private void createSidePanels(Composite parent) {
 		CTabFolder tabFolder = new CTabFolder(parent, SWT.NONE);
 		
+		tabFolder.setTabHeight(22);
+		
 		CTabItem moveTreeItem = new CTabItem(tabFolder, SWT.NONE);
-		moveTreeItem.setText("Moves");
+		moveTreeItem.setText(" Moves ");
 		this.moveHistoryTree = new MoveHistoryTree(tabFolder);
 		moveTreeItem.setControl(moveHistoryTree.getWidget());
 		
 		CTabItem databaseItem = new CTabItem(tabFolder, SWT.NONE);
-		databaseItem.setText("Database");
+		databaseItem.setText(" Database ");
 		this.databaseView = new DatabaseView(tabFolder);
 		databaseItem.setControl(databaseView.getWidget());
 		
 		CTabItem engineItem = new CTabItem(tabFolder, SWT.NONE);
-		engineItem.setText("Engine");
+		engineItem.setText(" Engine ");
 		this.engineView = new EngineMovesTable(tabFolder);
 		engineItem.setControl(engineView.getWidget());
 		
