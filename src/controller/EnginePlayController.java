@@ -2,7 +2,10 @@ package controller;
 
 import org.eclipse.swt.widgets.Display;
 
-import domain.*;
+import domain.Board;
+import domain.IllegalMoveException;
+import domain.Move;
+import domain.Side;
 
 public class EnginePlayController {
 	private boolean playWhite;
@@ -76,7 +79,10 @@ public class EnginePlayController {
 							}
 					
 							try {
-								mainController.makeMove(analysisEngine.getBestMove());
+								Move move = analysisEngine.getBestMove();
+								if(move != null) {
+									mainController.makeMove(move);
+								}
 							} catch(IllegalMoveException e) {
 								System.err.println("Illegal move in EnginePlayController");
 							}
