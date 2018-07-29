@@ -3,6 +3,8 @@ package ui;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -13,10 +15,12 @@ import org.eclipse.swt.widgets.*;
 class InputDialog extends Dialog {
 	private String result;
 	private String labelText;
+	private String allowedCharactersRegex;
 
-	public InputDialog(Shell parent, String labelText) {
+	public InputDialog(Shell parent, String labelText, String allowedCharactersRegex) {
 		super(parent, 0);
 		this.labelText = labelText;
+		this.allowedCharactersRegex = allowedCharactersRegex;
 	}
 	
 	public String open() {
@@ -37,6 +41,11 @@ class InputDialog extends Dialog {
 		label.setText(labelText + ":");
 		
 		final Text text = new Text(formComposite, SWT.BORDER);
+		text.addVerifyListener(new VerifyListener() {
+			public void verifyText(VerifyEvent event) {
+				event.text = event.text.replaceAll(allowedCharactersRegex, "");
+			}
+		});
 		text.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 
 		// Button Composite

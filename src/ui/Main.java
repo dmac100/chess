@@ -321,7 +321,7 @@ public class Main {
 	}
 	
 	private String selectFenWithDialog() {
-		InputDialog dialog = new InputDialog(shell, "FEN");
+		InputDialog dialog = new InputDialog(shell, "FEN", "[^/0-9a-zA-Z\\- ]");
 		dialog.setText("Enter FEN");
 		return dialog.open();
 	}
