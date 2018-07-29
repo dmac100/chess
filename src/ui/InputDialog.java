@@ -21,7 +21,7 @@ class InputDialog extends Dialog {
 	
 	public String open() {
 		Shell parent = getParent();
-		final Shell shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		final Shell shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.SHEET);
 		shell.setText(getText());
 		shell.setLayout(new GridLayout());
 		
