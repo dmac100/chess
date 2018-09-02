@@ -90,26 +90,33 @@ public class Main {
 	}
 	
 	private void createSidePanels(Composite parent) {
-		CTabFolder tabFolder = new CTabFolder(parent, SWT.NONE);
+		SashForm form = new SashForm(parent, SWT.VERTICAL);
+		form.setLayout(new FillLayout());
 		
-		tabFolder.setTabHeight(22);
+		CTabFolder topTabFolder = new CTabFolder(form, SWT.NONE);
+		topTabFolder.setTabHeight(22);
 		
-		CTabItem moveTreeItem = new CTabItem(tabFolder, SWT.NONE);
+		CTabFolder bottomTabFolder = new CTabFolder(form, SWT.NONE);
+		topTabFolder.setTabHeight(22);
+		
+		CTabItem moveTreeItem = new CTabItem(topTabFolder, SWT.NONE);
 		moveTreeItem.setText(" Moves ");
-		this.moveHistoryTree = new MoveHistoryTree(tabFolder);
+		this.moveHistoryTree = new MoveHistoryTree(topTabFolder);
 		moveTreeItem.setControl(moveHistoryTree.getWidget());
-		
-		CTabItem databaseItem = new CTabItem(tabFolder, SWT.NONE);
-		databaseItem.setText(" Database ");
-		this.databaseView = new DatabaseView(tabFolder);
-		databaseItem.setControl(databaseView.getWidget());
-		
-		CTabItem engineItem = new CTabItem(tabFolder, SWT.NONE);
+
+		CTabItem engineItem = new CTabItem(bottomTabFolder, SWT.NONE);
 		engineItem.setText(" Engine ");
-		this.engineView = new EngineMovesTable(tabFolder);
+		this.engineView = new EngineMovesTable(bottomTabFolder);
 		engineItem.setControl(engineView.getWidget());
 		
-		tabFolder.setSelection(0);
+		CTabItem databaseItem = new CTabItem(bottomTabFolder, SWT.NONE);
+		databaseItem.setText(" Database ");
+		this.databaseView = new DatabaseView(bottomTabFolder);
+		databaseItem.setControl(databaseView.getWidget());
+		
+		topTabFolder.setSelection(0);
+		bottomTabFolder.setSelection(0);
+		form.setWeights(new int[] { 40, 60 } );
 	}
 
 	private void createMenuBar(final Shell shell) {
