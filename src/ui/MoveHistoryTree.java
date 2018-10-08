@@ -168,6 +168,7 @@ public class MoveHistoryTree {
 			}
 			
 			private void drawComment(String text) {
+				text = text.replaceAll("[\\r\\n]+", " ");
 				int width = gc.stringExtent(text).x;
 				
 				if(x + width + 10 > canvas.getClientArea().width) {
