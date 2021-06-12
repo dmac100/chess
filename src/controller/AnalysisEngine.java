@@ -114,11 +114,11 @@ public class AnalysisEngine {
 	}
 	
 	private void syncEngine() {
+		writer.println("stop");
 		writer.println("uci");
 		writer.println("setoption name MultiPV value 10");
 		writer.println("isready");
 		writer.println("ucinewgame");
-		writer.println("stop");
 		writer.println("position fen " + currentPosition.getFen());
 		writer.println(enabled ? "go movetime 60000" : "stop");
 		writer.flush();
