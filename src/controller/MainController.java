@@ -159,7 +159,10 @@ public class MainController implements BoardDragHandler, HistoryItemSelectedHand
 		if(analysisEngine == null) return;
 		
 		try {
-			makeMove(analysisEngine.getBestMove());
+			Move move = analysisEngine.getBestMove();
+			if(move != null) {
+				makeMove(move);
+			}
 		} catch (IllegalMoveException e) {
 			// Don't make move.
 		}
