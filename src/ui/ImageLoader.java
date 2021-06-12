@@ -157,7 +157,7 @@ public class ImageLoader {
 	 */
 	private Image loadSvg(String name, int height) {
 		PNGTranscoder transcoder = new PNGTranscoder();
-		transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, new Float(height));
+		transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, Float.valueOf(height));
 		
 		TranscoderInput input = new TranscoderInput(getResource(name));
 		
